@@ -153,7 +153,7 @@ npm test
 - `cmd/wasm/`：ブラウザから呼び出すGo WASMエントリーポイント
 - `internal/geo/`：ブラウザとGoサーバーで共有する座標検証・距離計算
 - `cmd/server/`：Go + SQLiteの参照API
-- `web/`：WASMローダーとブラウザUI（次段階で実装）
+- `web/`：公式ランタイムを使うWASMローダーと動作確認デモ
 
 初期WASM APIは `window.MinyoGo` として公開し、`distanceKm(lat1, lon1, lat2, lon2)` と `validCoordinates(lat, lon)` を提供する。WASMはクライアント側の計算・UI補助に使い、スタンプ獲得の最終判定と保存は必ずサーバーAPI側で行う。WASMやブラウザ内の値は改変可能なため、本人認証・位置情報の真正性を保証するものではない。
 
@@ -165,3 +165,19 @@ go test ./...
 ```
 
 GitHub Actionsでは通常のGoテストに加えてWASM向けクロスビルドを実行する。
+
+
+### WASMローダーと動作確認
+
+Go公式の `wasm_exec.js` をローカルのGo toolchainから取得し、WASM本体と一緒に配布用バンドルを生成する。Go公式ランタイムを手書きで再実装・複製管理しない。
+
+```sh
+sh scripts/build-wasm.sh
+# web/dist/ に minyo-go.wasm / wasm_exec.js / wasm-loader.js / index.html を生成
+python3 -m http.server 8000 -d web/dist
+# http://localhost:8000/ を開く
+```
+
+`web/wasm-demo.html` は大阪城〜通天閣の距離計算と座標バリデーションをGo WASMで実行する最小デモ。CIは同じビルドスクリプトを実行し、`minyo-go-wasm` artifactとしてバンドルを保存する。生成物のWASMバイナリと公式ランタイムはGit管理しない。
+
+WASMロードに失敗した場合はデモ上にエラーを表示する。距離計算等のクライアント補助処理に限定し、スタンプの最終判定・保存はサーバーAPIに残す。
