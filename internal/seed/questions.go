@@ -49,6 +49,11 @@ func ImportQuestions(database *sql.DB, filename string) (int, error) {
 	tx, err := database.Begin()
 	if err != nil { return 0, fmt.Errorf("begin quiz import: %w", err) }
 	defer tx.Rollback()
+	for spotID := range perSpot {
+		if _, err := tx.Exec("UPDATE questions SET active = 0 WHERE spot_id = ?", spotID); err != nil {
+			return 0, fmt.Errorf("deactivate previous questions for %s: %w", spotID, err)
+		}
+	}
 	for _, q := range dataset.Questions {
 		choices, err := json.Marshal(q.Choices)
 		if err != nil { return 0, fmt.Errorf("encode choices for %s: %w", q.Key, err) }
