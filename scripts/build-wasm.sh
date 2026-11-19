@@ -14,10 +14,10 @@ if [ ! -f "$WASM_EXEC" ]; then
   exit 1
 fi
 
-OUT_DIR="$ROOT/web/dist"
+# map.html is served from public/, so its WASM assets live beside it.
+OUT_DIR="$ROOT/public/wasm"
 mkdir -p "$OUT_DIR"
 GOOS=js GOARCH=wasm go build -trimpath -o "$OUT_DIR/minyo-go.wasm" ./cmd/wasm
 cp "$WASM_EXEC" "$OUT_DIR/wasm_exec.js"
 cp "$ROOT/web/wasm-loader.js" "$OUT_DIR/wasm-loader.js"
-cp "$ROOT/web/wasm-demo.html" "$OUT_DIR/index.html"
-echo "WASM bundle created at web/dist/"
+echo "WASM assets created at public/wasm/"
