@@ -79,3 +79,39 @@ func TestTestModeMustBeEnabledByServer(t *testing.T) {
 	res := postAttempt(t, server, answers, true)
 	if res.Code != http.StatusForbidden { t.Fatalf("status=%d, want %d", res.Code, http.StatusForbidden) }
 }
+
+func TestThirtyKilometerRadiusIsEnforced(t *testing.T) {
+	server, closeDB := testServer(t, false)
+	defer closeDB()
+	answers := []submittedAnswer{{QuestionID:1,AnswerIndex:0},{QuestionID:2,AnswerIndex:1},{QuestionID:3,AnswerIndex:2}}
+	payload := attemptRequest{UserID:"near-user", SpotID:"spot-1", Answers:answers, Latitude:floatPtr(34.6937), Longitude:floatPtr(135.5023)}
+	body, _ := json.Marshal(payload)
+	req := httptest.NewRequest(http.MethodPost, "/api/attempts", bytes.NewReader(body))
+	res := httptest.NewRecorder()
+	server.Handler().ServeHTTP(res, req)
+	if res.Code != http.StatusOK { t.Fatalf("nearby attempt status=%d body=%s", res.Code, res.Body.String()) }
+
+	payload.UserID = "far-user"
+	payload.Latitude = floatPtr(35.5)
+	payload.Longitude = floatPtr(139.0)
+	body, _ = json.Marshal(payload)
+	req = httptest.NewRequest(http.MethodPost, "/api/attempts", bytes.NewReader(body))
+	res = httptest.NewRecorder()
+	server.Handler().ServeHTTP(res, req)
+	if res.Code != http.StatusForbidden { t.Fatalf("far attempt status=%d, want %d", res.Code, http.StatusForbidden) }
+}
+
+func TestNormalModeRejectsUnverifiedSpotCoordinates(t *testing.T) {
+	server, closeDB := testServer(t, false)
+	defer closeDB()
+	if _, err := server.db.Exec("UPDATE spots SET lat=NULL, lon=NULL WHERE id='spot-1'"); err != nil { t.Fatal(err) }
+	answers := []submittedAnswer{{QuestionID:1,AnswerIndex:0},{QuestionID:2,AnswerIndex:1},{QuestionID:3,AnswerIndex:2}}
+	payload := attemptRequest{UserID:"null-coord-user", SpotID:"spot-1", Answers:answers, Latitude:floatPtr(34.6937), Longitude:floatPtr(135.5023)}
+	body, _ := json.Marshal(payload)
+	req := httptest.NewRequest(http.MethodPost, "/api/attempts", bytes.NewReader(body))
+	res := httptest.NewRecorder()
+	server.Handler().ServeHTTP(res, req)
+	if res.Code != http.StatusConflict { t.Fatalf("unverified spot status=%d, want %d", res.Code, http.StatusConflict) }
+}
+
+func floatPtr(value float64) *float64 { return &value }
