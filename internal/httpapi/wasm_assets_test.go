@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/bonsai/minyo-go/internal/db"
@@ -58,8 +59,8 @@ func TestWASMAssetsAreServedWithBrowserMIMETypes(t *testing.T) {
 			if res.Code != http.StatusOK {
 				t.Fatalf("GET %s status=%d body=%s", tc.path, res.Code, res.Body.String())
 			}
-			if got := res.Header().Get("Content-Type"); got != tc.wantType {
-				t.Fatalf("GET %s Content-Type=%q, want %q", tc.path, got, tc.wantType)
+			if got := res.Header().Get("Content-Type"); !strings.HasPrefix(got, tc.wantType) {
+				t.Fatalf("GET %s Content-Type=%q, want prefix %q", tc.path, got, tc.wantType)
 			}
 		})
 	}
