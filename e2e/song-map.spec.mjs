@@ -43,6 +43,8 @@ test("JavaScript fallback remains available when the WASM download fails", async
 test("song map opens three questions and round-trips an answer attempt to the API", async ({ page }) => {
   await page.goto("/?api=");
   await expect(page.locator("#apiStatus")).toContainText("API接続中");
+  await page.locator("label.toggle-wrap").click();
+  await expect(page.locator("#testBadge")).toBeVisible();
   await expect(page.locator("[data-quiz]").first()).toBeVisible();
   const spotID = await page.locator("[data-quiz]").first().getAttribute("data-quiz");
   expect(spotID).toBeTruthy();
@@ -53,8 +55,6 @@ test("song map opens three questions and round-trips an answer attempt to the AP
   await expect(page.locator("#quizDialog")).toBeVisible();
   await expect(page.locator("#quizQuestions .quiz-question")).toHaveCount(3);
 
-  await page.locator("label.toggle-wrap").click();
-  await expect(page.locator("#testBadge")).toBeVisible();
   for (const question of await page.locator("#quizQuestions .quiz-question").all()) {
     await question.locator('input[type="radio"]').first().check();
   }
