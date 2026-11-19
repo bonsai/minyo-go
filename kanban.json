@@ -1,0 +1,143 @@
+{
+  "schema_version": 1,
+  "project": {
+    "name": "MINYO-GO スポットラリー",
+    "repository": "bonsai/minyo-go",
+    "goal": "スポットごとの3問クイズに全問正解するとスタンプを1個取得できるGo + SQLiteアプリを実装する",
+    "source_of_truth": "GitHub Issues",
+    "notes": [
+      "既存のmap.htmlとspots-verified.jsonを再利用する",
+      "SQLiteはminyo-go内部のDBとし、MINYO LAND共通DBにはしない",
+      "通常は30km圏内で取得し、既存のテストモードを維持する",
+      "不正解ならスタンプを付与せず再挑戦可能",
+      "同一ユーザー・同一スポットのスタンプは重複付与しない"
+    ]
+  },
+  "columns": [
+    { "id": "backlog", "name": "Backlog", "description": "未着手・着手順待ち" },
+    { "id": "ready", "name": "Ready", "description": "依存タスクが完了し着手可能" },
+    { "id": "in_progress", "name": "In Progress", "description": "実装中" },
+    { "id": "review", "name": "Review", "description": "テスト・レビュー待ち" },
+    { "id": "done", "name": "Done", "description": "受け入れ条件を満たして完了" }
+  ],
+  "workflow": {
+    "initial_status": "backlog",
+    "wip_limit": { "in_progress": 2 },
+    "completion_rule": "Issueの受け入れ条件を満たし、テスト結果を確認してからDoneへ移動する",
+    "status_is_manual": true
+  },
+  "progress": {
+    "implementation_estimate_percent": 12,
+    "basis": "既存の歌mapとスポット台帳は存在するが、Go・SQLite・クイズ・スタンプ機能の実装はリポジトリ上で未確認",
+    "exclude_issue_creation_from_completion": true
+  },
+  "cards": [
+    {
+      "id": "issue-2",
+      "issue": 2,
+      "title": "DB: スポット・クイズ・ユーザー・スタンプのスキーマとマイグレーション",
+      "status": "backlog",
+      "priority": "P0",
+      "depends_on": [],
+      "labels": ["database", "foundation"],
+      "url": "https://github.com/bonsai/minyo-go/issues/2"
+    },
+    {
+      "id": "issue-4",
+      "issue": 4,
+      "title": "DB: modernc SQLite接続管理とWAL運用設定を実装",
+      "status": "backlog",
+      "priority": "P0",
+      "depends_on": [],
+      "labels": ["database", "performance"],
+      "url": "https://github.com/bonsai/minyo-go/issues/4"
+    },
+    {
+      "id": "issue-3",
+      "issue": 3,
+      "title": "DATA: spots-verified.jsonをSQLiteへ取り込むseed/import処理",
+      "status": "backlog",
+      "priority": "P0",
+      "depends_on": ["issue-2", "issue-4"],
+      "labels": ["data", "seed"],
+      "url": "https://github.com/bonsai/minyo-go/issues/3"
+    },
+    {
+      "id": "issue-5",
+      "issue": 5,
+      "title": "API: スポット一覧・スポット別3問クイズ取得エンドポイント",
+      "status": "backlog",
+      "priority": "P1",
+      "depends_on": ["issue-2", "issue-3", "issue-4"],
+      "labels": ["api"],
+      "url": "https://github.com/bonsai/minyo-go/issues/5"
+    },
+    {
+      "id": "issue-6",
+      "issue": 6,
+      "title": "CORE: 3問全問正解時のみスタンプ付与・重複防止を実装",
+      "status": "backlog",
+      "priority": "P1",
+      "depends_on": ["issue-2", "issue-4", "issue-5"],
+      "labels": ["core", "transaction"],
+      "url": "https://github.com/bonsai/minyo-go/issues/6"
+    },
+    {
+      "id": "issue-7",
+      "issue": 7,
+      "title": "API: ユーザーのスタンプ取得状況・進捗取得",
+      "status": "backlog",
+      "priority": "P2",
+      "depends_on": ["issue-2", "issue-6"],
+      "labels": ["api", "progress"],
+      "url": "https://github.com/bonsai/minyo-go/issues/7"
+    },
+    {
+      "id": "issue-8",
+      "issue": 8,
+      "title": "UI: 既存map.htmlに3問クイズ・スタンプ取得・進捗表示を接続",
+      "status": "backlog",
+      "priority": "P2",
+      "depends_on": ["issue-5", "issue-6", "issue-7"],
+      "labels": ["ui", "integration"],
+      "url": "https://github.com/bonsai/minyo-go/issues/8"
+    },
+    {
+      "id": "issue-9",
+      "issue": 9,
+      "title": "TEST: クイズ・スタンプ・SQLite WALの自動テストと負荷検証",
+      "status": "backlog",
+      "priority": "P1",
+      "depends_on": ["issue-2", "issue-3", "issue-4", "issue-5", "issue-6", "issue-7", "issue-8"],
+      "labels": ["test", "ci", "performance"],
+      "url": "https://github.com/bonsai/minyo-go/issues/9"
+    }
+  ],
+  "milestones": [
+    {
+      "id": "foundation",
+      "name": "M1: DB・データ基盤",
+      "cards": ["issue-2", "issue-4", "issue-3"],
+      "exit_criteria": "新規DBを構築し、既存の確認済みスポットを再現可能に取り込める"
+    },
+    {
+      "id": "game_core",
+      "name": "M2: クイズ・スタンプ機能",
+      "cards": ["issue-5", "issue-6"],
+      "exit_criteria": "3問全問正解でのみスタンプが1個付与され、重複取得しない"
+    },
+    {
+      "id": "experience",
+      "name": "M3: 地図連携・品質確認",
+      "cards": ["issue-7", "issue-8", "issue-9"],
+      "exit_criteria": "地図から遊べて進捗を確認でき、自動テストが通る"
+    }
+  ],
+  "out_of_scope": [
+    "NFT・ブロックチェーン",
+    "ランキング",
+    "SNS",
+    "複雑な報酬演出",
+    "MINYO LAND共通DB化"
+  ]
+}
