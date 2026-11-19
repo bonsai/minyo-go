@@ -22,6 +22,13 @@ func New(database *sql.DB, allowTestMode ...bool) *Server {
 
 func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
+	mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/" { http.NotFound(w, r); return }
+		http.ServeFile(w, r, "map.html")
+	})
+	mux.HandleFunc("GET /map.html", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "map.html")
+	})
 	mux.HandleFunc("GET /healthz", s.health)
 	mux.HandleFunc("GET /api/spots", s.listSpots)
 	mux.HandleFunc("GET /api/spots/{id}/quiz", s.getQuiz)
