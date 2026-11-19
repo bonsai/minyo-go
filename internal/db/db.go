@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/fs"
 	"sort"
+	"strings"
 
 	_ "modernc.org/sqlite"
 )
@@ -80,9 +81,15 @@ func migrate(database *sql.DB) error {
 		if err != nil {
 			return fmt.Errorf("begin migration %s: %w", name, err)
 		}
-		if _, err := tx.Exec(string(body)); err != nil {
-			tx.Rollback()
-			return fmt.Errorf("apply migration %s: %w", name, err)
+		for _, statement := range strings.Split(string(body), ";") {
+			statement = strings.TrimSpace(statement)
+			if statement == "" {
+				continue
+			}
+			if _, err := tx.Exec(statement); err != nil {
+				tx.Rollback()
+				return fmt.Errorf("apply migration %s: %w", name, err)
+			}
 		}
 		if _, err := tx.Exec("INSERT INTO schema_migrations(name) VALUES (?)", name); err != nil {
 			tx.Rollback()
