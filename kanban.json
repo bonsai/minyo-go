@@ -49,8 +49,8 @@
     "status_is_manual": true
   },
   "progress": {
-    "implementation_estimate_percent": 38,
-    "basis": "Goサーバー、SQLite/WAL、マイグレーション、スポット/クイズ取込、スポット/クイズ/回答/スタンプ/進捗API、サーバー側30km判定、テストとCIを追加。GitHub Actionsでの実行結果と地図UI統合、実クイズ原稿は未確認・未完了。",
+    "implementation_estimate_percent": 45,
+    "basis": "Goサーバー、SQLite/WALと接続ごとのPRAGMA、マイグレーション、スポット/クイズ取込、スポット/クイズ/回答/スタンプ/進捗API、サーバー側30km判定、既存map.htmlのAPI接続、単体テストとCIを追加。クイズ原稿データ、現地確認済み座標、CI実行結果、本番認証、負荷計測は未完了。",
     "exclude_issue_creation_from_completion": true
   },
   "cards": [
@@ -149,7 +149,7 @@
       "id": "issue-8",
       "issue": 8,
       "title": "UI: 既存map.htmlに3問クイズ・スタンプ取得・進捗表示を接続",
-      "status": "backlog",
+      "status": "review",
       "priority": "P2",
       "depends_on": [
         "issue-5",
