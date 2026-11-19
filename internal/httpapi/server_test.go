@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"path/filepath"
 	"testing"
+	"sync"
 
 	"github.com/bonsai/minyo-go/internal/db"
 )
@@ -135,4 +136,29 @@ func TestQuizUnknownSpotReturnsNotFound(t *testing.T) {
 	res := httptest.NewRecorder()
 	server.Handler().ServeHTTP(res, req)
 	if res.Code != http.StatusNotFound { t.Fatalf("status=%d, want %d", res.Code, http.StatusNotFound) }
+}
+
+func TestConcurrentAttemptsAwardOnlyOneStamp(t *testing.T) {
+	server, closeDB := testServer(t, true)
+	defer closeDB()
+	answers := []submittedAnswer{{QuestionID:1,AnswerIndex:0},{QuestionID:2,AnswerIndex:1},{QuestionID:3,AnswerIndex:2}}
+	const workers = 10
+	var wg sync.WaitGroup
+	statuses := make(chan int, workers)
+	for i := 0; i < workers; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			res := postAttempt(t, server, answers, true)
+			statuses <- res.Code
+		}()
+	}
+	wg.Wait()
+	close(statuses)
+	for status := range statuses {
+		if status != http.StatusOK { t.Errorf("concurrent attempt status=%d, want %d", status, http.StatusOK) }
+	}
+	var count int
+	if err := server.db.QueryRow("SELECT COUNT(*) FROM stamps WHERE user_id='user-1' AND spot_id='spot-1'").Scan(&count); err != nil { t.Fatal(err) }
+	if count != 1 { t.Fatalf("stamp count=%d, want 1", count) }
 }
