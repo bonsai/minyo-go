@@ -51,7 +51,7 @@
   },
   "progress": {
     "implementation_estimate_percent": 45,
-    "basis": "Goサーバー、SQLite/WALと接続ごとのPRAGMA、マイグレーション、スポット/クイズ取込、スポット/クイズ/回答/スタンプ/進捗API、サーバー側30km判定、既存map.htmlのAPI接続、単体テストとCIを追加。クイズ原稿データ、現地確認済み座標、CI実行結果、本番認証、負荷計測は未完了。 クイズ原稿48問を追加し、全16スポット各3問の統合インポートテスト、回答位置・重複選択肢・出典メタデータの静的検査、Go CIを確認済み。 Cloudflare D1採用を決定し、Workers API移植・静的アセット配信・D1 seed/migration・本番検証をIssue #14に分解。",
+    "basis": "Goサーバー、SQLite/WALと接続ごとのPRAGMA、マイグレーション、スポット/クイズ取込、スポット/クイズ/回答/スタンプ/進捗API、サーバー側30km判定、既存map.htmlのAPI接続、単体テストとCIを追加。クイズ原稿データ、現地確認済み座標、CI実行結果、本番認証、負荷計測は未完了。 クイズ原稿48問を追加し、全16スポット各3問の統合インポートテスト、回答位置・重複選択肢・出典メタデータの静的検査、Go CIを確認済み。 Cloudflare D1採用を決定し、Workers API移植・静的アセット配信・D1 seed/migration・本番検証をIssue #14に分解。 Cloudflare移行の初期実装としてD1 migration、Workers API、seedスクリプト、静的UI配置、型チェック・スモークテストCI、README手順を追加。",
     "exclude_issue_creation_from_completion": true
   },
   "cards": [
@@ -259,7 +259,7 @@
       "id": "issue-14",
       "issue": 14,
       "title": "CLOUDFLARE: D1 + Workersへ移行してminyo-goを公開する",
-      "status": "ready",
+      "status": "in_progress",
       "priority": "P0",
       "depends_on": [
         "issue-2",
