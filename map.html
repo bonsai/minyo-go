@@ -55,6 +55,14 @@
   .small{ font-size:12px; color:var(--muted); line-height:1.6; }
   .pop h3{ margin:0 0 2px; font-size:15px; }
   .pop .evidence{ font-size:13px; }
+  #quizDialog{width:min(620px,calc(100% - 28px));max-height:85vh;border:1px solid var(--line);border-radius:14px;padding:18px;background:#fff;color:var(--ink)}
+  #quizDialog::backdrop{background:rgba(20,24,30,.55)}
+  #quizDialog h2{margin:0 0 8px}
+  .quiz-question{border:1px solid var(--line);border-radius:10px;padding:12px;margin:12px 0}
+  .quiz-question legend{font-weight:700;padding:0 5px}
+  .quiz-choice{display:flex;gap:8px;align-items:center;padding:7px 4px;font-size:14px}
+  #quizStatus{font-size:14px;line-height:1.6;white-space:pre-wrap}
+  #apiStatus{font-size:12px;color:var(--muted)}
   footer{ padding:0 16px 34px; color:var(--muted); font-size:12px; line-height:1.7; max-width:860px; }
   @media (max-width:560px){ #map{ height:52vh; } form.add .two{ grid-template-columns:1fr; } }
 </style>
@@ -78,6 +86,7 @@
     <span class="switch"><input type="checkbox" id="testToggle"><span class="slider"></span></span>
   </label>
   <span id="testBadge">⚠ テストモード中：距離制限なし</span>
+  <span id="apiStatus"></span>
 </div>
 
 <div id="map"></div>
@@ -127,6 +136,18 @@
     <span id="exportStatus" class="small"></span>
   </div>
 </main>
+
+<dialog id="quizDialog">
+  <h2 id="quizTitle">スポットクイズ</h2>
+  <p id="quizStatus">クイズを読み込みます。</p>
+  <form id="quizForm">
+    <div id="quizQuestions"></div>
+    <div class="row">
+      <button type="submit" class="primary" id="quizSubmit">回答する</button>
+      <button type="button" id="quizClose">閉じる</button>
+    </div>
+  </form>
+</dialog>
 
 <footer>
   データ：<code>minyo-go/spots-verified.json</code>（歌とのつながりを確認できた場所のみ）。ピンの座標は表示用で、出典は Wikipedia の座標表記・公式ページの記載によります。<br>
@@ -418,6 +439,19 @@ const markers = {};         // id -> L.circleMarker
 
 const allSpots = () => BASE_SPOTS.concat(custom);
 const $ = id => document.getElementById(id);
+const API_PARAM = new URLSearchParams(location.search).get("api");
+const API_ENABLED = API_PARAM !== null;
+const API_BASE = API_PARAM || "";
+const API_USER_KEY = "minyo-go.apiUserId.v1";
+let apiUserId = localStorage.getItem(API_USER_KEY);
+if (!apiUserId) {
+  apiUserId = "web-" + (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2));
+  localStorage.setItem(API_USER_KEY, apiUserId);
+}
+let apiStamps = new Set();
+let activeQuizSpot = null;
+let activeQuizQuestions = [];
+const apiURL = path => API_BASE.replace(/\/$/, "") + path;
 
 const map = L.map("map");
 L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -461,6 +495,10 @@ function getHint(s){
 function esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 
 function getButtonHTML(s){
+  if (API_ENABLED) {
+    if (apiStamps.has(s.id)) return `<span class="got">🏅 取得済み</span>`;
+    return `<button type="button" class="get" data-quiz="${esc(s.id)}">🎓 3問クイズに挑戦</button>`;
+  }
   if (medals.has(s.id)) return `<span class="got">🏅 取得済み</span>`;
   const hint = getHint(s);
   return `<button type="button" class="get" data-get="${esc(s.id)}" ${canGet(s) ? "" : "disabled"}>🏅 メダルGET</button>`
@@ -499,7 +537,8 @@ function render(){
   $("testToggle").checked = testMode;
   const spots = allSpots();
   $("spotTotal").textContent = spots.length;
-  $("medalCount").textContent = `${medals.size}/${spots.length}`;
+  const owned = API_ENABLED ? apiStamps : medals;
+  $("medalCount").textContent = `${owned.size}/${spots.length}`;
 
   // markers
   for (const id in markers){ map.removeLayer(markers[id]); delete markers[id]; }
@@ -509,7 +548,7 @@ function render(){
     const t = TYPES[s.song_type] || { color: "#888" };
     const m = L.circleMarker([s.lat, s.lon], {
       radius: 10, color: "#fff", weight: 2,
-      fillColor: medals.has(s.id) ? "#d7a94a" : t.color, fillOpacity: 0.95
+      fillColor: owned.has(s.id) ? "#d7a94a" : t.color, fillOpacity: 0.95
     }).addTo(map).bindPopup(popupHTML(s));
     m.on("popupopen", () => m.setPopupContent(popupHTML(s)));
     markers[s.id] = m; pts.push([s.lat, s.lon]);
@@ -539,6 +578,8 @@ function render(){
 
 // medal GET + custom delete (event delegation for list & popups)
 document.addEventListener("click", e => {
+  const quiz = e.target.closest("[data-quiz]");
+  if (quiz) { openQuiz(quiz.getAttribute("data-quiz")); return; }
   const g = e.target.closest("[data-get]");
   if (g && !g.disabled){
     const s = allSpots().find(x => x.id === g.getAttribute("data-get"));
@@ -637,6 +678,96 @@ $("cpBtn").addEventListener("click", async () => {
   try { await navigator.clipboard.writeText(exportJSON()); $("exportStatus").textContent = `追加分 ${custom.length} 件をコピーしました。`; }
   catch(e){ $("exportStatus").textContent = "コピーできませんでした。ダウンロードを使ってください。"; }
 });
+
+
+async function refreshApiProgress(){
+  if (!API_ENABLED) return;
+  try {
+    const response = await fetch(apiURL(`/api/users/${encodeURIComponent(apiUserId)}/progress`));
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || `API error (${response.status})`);
+    apiStamps = new Set((data.spots || []).filter(item => item.collected).map(item => item.spot_id));
+    $("apiStatus").textContent = `API接続中：${data.collected_spots}/${data.total_spots} スタンプ`;
+    render();
+  } catch (error) {
+    $("apiStatus").textContent = `API未接続：${error.message}`;
+  }
+}
+
+async function openQuiz(spotID){
+  const spot = allSpots().find(item => item.id === spotID);
+  if (!spot) return;
+  activeQuizSpot = spotID;
+  activeQuizQuestions = [];
+  $("quizTitle").textContent = `${spot.name} — 3問クイズ`;
+  $("quizStatus").textContent = "クイズを読み込み中…";
+  $("quizQuestions").innerHTML = "";
+  $("quizSubmit").disabled = true;
+  $("quizDialog").showModal();
+  try {
+    const response = await fetch(apiURL(`/api/spots/${encodeURIComponent(spotID)}/quiz`));
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || `API error (${response.status})`);
+    activeQuizQuestions = data.questions || [];
+    $("quizQuestions").innerHTML = activeQuizQuestions.map((question, index) =>
+      `<fieldset class="quiz-question"><legend>${index + 1}. ${esc(question.prompt)}</legend>` +
+      question.choices.map((choice, choiceIndex) =>
+        `<label class="quiz-choice"><input type="radio" name="q-${question.id}" value="${choiceIndex}" required> ${esc(choice)}</label>`
+      ).join("") + `</fieldset>`
+    ).join("");
+    $("quizStatus").textContent = "3問すべてに回答してください。全問正解でスタンプを獲得できます。";
+    $("quizSubmit").disabled = activeQuizQuestions.length !== 3;
+  } catch (error) {
+    $("quizStatus").textContent = error.message;
+  }
+}
+
+$("quizClose").addEventListener("click", () => $("quizDialog").close());
+$("quizForm").addEventListener("submit", async event => {
+  event.preventDefault();
+  if (!API_ENABLED || !activeQuizSpot || activeQuizQuestions.length !== 3) return;
+  const answers = activeQuizQuestions.map(question => {
+    const selected = document.querySelector(`input[name="q-${question.id}"]:checked`);
+    return selected ? {question_id: question.id, answer_index: Number(selected.value)} : null;
+  });
+  if (answers.some(answer => answer === null)) {
+    $("quizStatus").textContent = "3問すべてに回答してください。";
+    return;
+  }
+  const payload = {user_id: apiUserId, spot_id: activeQuizSpot, answers, test_mode: testMode};
+  if (!testMode) {
+    if (!userPos) {
+      $("quizStatus").textContent = "通常モードでは現在地が必要です。「現在地を取得」を先に押してください。";
+      return;
+    }
+    payload.latitude = userPos.lat;
+    payload.longitude = userPos.lon;
+  }
+  $("quizSubmit").disabled = true;
+  $("quizStatus").textContent = "回答を確認中…";
+  try {
+    const response = await fetch(apiURL("/api/attempts"), {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(payload)
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || `API error (${response.status})`);
+    if (result.stamp_awarded) $("quizStatus").textContent = "🎉 全問正解！スタンプを獲得しました。";
+    else if (result.stamp_already_owned) $("quizStatus").textContent = "全問正解！このスポットのスタンプは取得済みです。";
+    else $("quizStatus").textContent = `${result.correct_count}/3問正解。スタンプはまだありません。もう一度挑戦できます。`;
+    await refreshApiProgress();
+  } catch (error) {
+    $("quizStatus").textContent = error.message;
+  } finally {
+    $("quizSubmit").disabled = false;
+  }
+});
+
+if (API_ENABLED) {
+  $("apiStatus").textContent = "API接続を確認中…";
+  refreshApiProgress();
+}
 
 render();
 </script>
