@@ -4,6 +4,7 @@ import (
 	"path/filepath"
 	"testing"
 	"database/sql"
+	"context"
 )
 
 func TestOpenAppliesMigrationsOnce(t *testing.T) {
@@ -33,7 +34,7 @@ func TestPragmasApplyToEveryPhysicalConnection(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	defer database.Close()
 
-	first, err := database.Conn(t.Context())
+	first, err := database.Conn(context.Background())
 	if err != nil { t.Fatal(err) }
 	defer first.Close()
 	second, err := database.Conn(t.Context())
