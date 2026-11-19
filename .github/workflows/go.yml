@@ -20,12 +20,17 @@ jobs:
           cache: true
       - name: Resolve modules
         run: go mod tidy
+      - name: Build browser WebAssembly bundle
+        run: sh scripts/build-wasm.sh
+      - name: Verify static-hosting bundle
+        run: |
+          test -s public/wasm/minyo-go.wasm
+          test -s public/wasm/wasm_exec.js
+          test -s public/wasm/wasm-loader.js
       - name: Test
         run: go test ./...
       - name: Vet
         run: go vet ./...
-      - name: Build browser WebAssembly bundle
-        run: sh scripts/build-wasm.sh
       - name: Upload browser bundle
         uses: actions/upload-artifact@v4
         with:
