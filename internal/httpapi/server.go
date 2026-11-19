@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strings"
 	"github.com/bonsai/minyo-go/internal/geo"
+	"github.com/bonsai/minyo-go/internal/game"
 )
 
 type Server struct {
@@ -252,25 +253,26 @@ func (s *Server) submitAttempt(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	seen := make(map[int64]bool, 3)
-	correct := 0
-	for _, answer := range request.Answers {
-		expectedIndex, exists := expected[answer.QuestionID]
-		if !exists || seen[answer.QuestionID] {
-			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "answers must contain each active question exactly once"})
-			return
-		}
-		seen[answer.QuestionID] = true
-		if answer.AnswerIndex == expectedIndex {
-			correct++
-		}
+	expectedIDs := make([]int64, 0, len(expected))
+	submittedIDs := make([]int64, 0, len(request.Answers))
+	for id := range expected {
+		expectedIDs = append(expectedIDs, id)
 	}
-	if len(seen) != 3 {
+	for _, answer := range request.Answers {
+		submittedIDs = append(submittedIDs, answer.QuestionID)
+	}
+	if !game.ValidateAnswerIDs(expectedIDs, submittedIDs) {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "answers must contain each active question exactly once"})
 		return
 	}
+	correct := 0
+	for _, answer := range request.Answers {
+		if answer.AnswerIndex == expected[answer.QuestionID] {
+			correct++
+		}
+	}
 
-	passed := correct == 3
+	passed := game.Passed(correct, len(expected))
 	if _, err := tx.ExecContext(r.Context(), `
 		INSERT INTO attempts(user_id, spot_id, correct_count, total_count, passed)
 		VALUES (?, ?, ?, 3, ?)`, request.UserID, request.SpotID, correct, passed); err != nil {
