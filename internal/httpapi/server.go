@@ -27,6 +27,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /api/spots/{id}/quiz", s.getQuiz)
 	mux.HandleFunc("POST /api/attempts", s.submitAttempt)
 	mux.HandleFunc("GET /api/users/{id}/stamps", s.getStamps)
+	mux.HandleFunc("GET /api/users/{id}/progress", s.getProgress)
 	return withJSONHeaders(mux)
 }
 
@@ -100,6 +101,15 @@ type quizQuestion struct {
 
 func (s *Server) getQuiz(w http.ResponseWriter, r *http.Request) {
 	spotID := r.PathValue("id")
+	var exists int
+	if err := s.db.QueryRowContext(r.Context(), "SELECT 1 FROM spots WHERE id = ?", spotID).Scan(&exists); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			writeJSON(w, http.StatusNotFound, map[string]string{"error": "spot not found"})
+		} else {
+			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "could not verify spot"})
+		}
+		return
+	}
 	rows, err := s.db.QueryContext(r.Context(), `
 		SELECT id, prompt, choices_json FROM questions
 		WHERE spot_id = ? AND active = 1 ORDER BY sort_order, id LIMIT 4`, spotID)
@@ -323,4 +333,48 @@ func haversineKm(lat1, lon1, lat2, lon2 float64) float64 {
 	dLon := toRadians(lon2 - lon1)
 	a := math.Sin(dLat/2)*math.Sin(dLat/2) + math.Cos(toRadians(lat1))*math.Cos(toRadians(lat2))*math.Sin(dLon/2)*math.Sin(dLon/2)
 	return 2 * earthRadiusKm * math.Asin(math.Sqrt(a))
+}
+
+func (s *Server) getProgress(w http.ResponseWriter, r *http.Request) {
+	userID := r.PathValue("id")
+	rows, err := s.db.QueryContext(r.Context(), `
+		SELECT sp.id, sp.name, sp.song_title, st.earned_at
+		FROM spots sp
+		LEFT JOIN stamps st ON st.spot_id = sp.id AND st.user_id = ?
+		ORDER BY sp.prefecture, sp.municipality, sp.name`, userID)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "could not load progress"})
+		return
+	}
+	defer rows.Close()
+	type progressItem struct {
+		SpotID string `json:"spot_id"`
+		SpotName string `json:"spot_name"`
+		SongTitle string `json:"song_title"`
+		Collected bool `json:"collected"`
+		EarnedAt *string `json:"earned_at"`
+	}
+	items := make([]progressItem, 0)
+	collected := 0
+	for rows.Next() {
+		var item progressItem
+		if err := rows.Scan(&item.SpotID, &item.SpotName, &item.SongTitle, &item.EarnedAt); err != nil {
+			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "could not read progress"})
+			return
+		}
+		item.Collected = item.EarnedAt != nil
+		if item.Collected { collected++ }
+		items = append(items, item)
+	}
+	if err := rows.Err(); err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "could not read progress"})
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{
+		"user_id": userID,
+		"total_spots": len(items),
+		"collected_spots": collected,
+		"remaining_spots": len(items)-collected,
+		"spots": items,
+	})
 }
