@@ -99,3 +99,38 @@ go vet ./...
 ```
 
 現段階の `user_id` はMVP用の識別子であり、認証機構ではない。本番公開前に認証・ユーザー本人性の検証を追加する。SQLiteはWAL + busy_timeout + synchronous=NORMALで運用し、PRAGMAはmoderncのDSN `_pragma` パラメータで物理接続ごとに適用し、DB接続プールは最大8接続としている。SQLiteの書き込み自体は単一writerなので、WALは読み書きの共存を改善するものであり、書き込みを並列化するものではない。
+
+## Cloudflare D1 + Workers（移行中）
+
+本番公開先は Cloudflare D1 + Workers とする。Go + SQLite版は既存仕様の参照実装として維持し、Workers APIを本番実行系として移植する。
+
+### ローカル準備
+
+```sh
+npm install
+# Cloudflare dashboard で D1 database を作成後、wrangler.jsonc の database_id を設定
+npm run db:local
+npm run seed:local
+npm run dev
+```
+
+### 本番準備・デプロイ
+
+```sh
+npx wrangler d1 create minyo-go
+# 出力された database_id を wrangler.jsonc に設定
+npm run db:remote
+npm run seed:remote
+npm run deploy
+```
+
+本番操作にはCloudflareへのログインが必要。database_idは公開識別子だが、認証トークン等の秘密情報はリポジトリへ登録しない。テストモードは既定で無効（`ALLOW_TEST_MODE=false`）。
+
+Workers APIは既存Go APIと同じ主要エンドポイントを実装する。既存 `map.html` は `public/map.html` として静的配信する。D1へのseedは `spots-verified.json` と `quizzes.json` を読み、同じデータを再投入しても重複しないupsert方式。D1の回答判定・スタンプ付与はbatchで実行する。
+
+### Cloudflare検証
+
+```sh
+npm run typecheck
+npm test
+```
