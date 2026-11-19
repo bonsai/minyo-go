@@ -14,10 +14,10 @@ if [ ! -f "$WASM_EXEC" ]; then
   exit 1
 fi
 
-# map.html is served from public/, so its WASM assets live beside it.
-OUT_DIR="$ROOT/public/wasm"
-mkdir -p "$OUT_DIR"
-GOOS=js GOARCH=wasm go build -trimpath -o "$OUT_DIR/minyo-go.wasm" ./cmd/wasm
-cp "$WASM_EXEC" "$OUT_DIR/wasm_exec.js"
-cp "$ROOT/web/wasm-loader.js" "$OUT_DIR/wasm-loader.js"
-echo "WASM assets created at public/wasm/"
+# The Go API serves ./wasm; static hosting uses the same assets under public/.
+mkdir -p "$ROOT/wasm" "$ROOT/public/wasm"
+GOOS=js GOARCH=wasm go build -trimpath -o "$ROOT/wasm/minyo-go.wasm" ./cmd/wasm
+cp "$WASM_EXEC" "$ROOT/wasm/wasm_exec.js"
+cp "$ROOT/web/wasm-loader.js" "$ROOT/wasm/wasm-loader.js"
+cp "$ROOT/wasm/"* "$ROOT/public/wasm/"
+echo "WASM assets created in wasm/ and public/wasm/"
