@@ -87,6 +87,7 @@
   </label>
   <span id="testBadge">⚠ テストモード中：距離制限なし</span>
   <span id="apiStatus"></span>
+  <span id="wasmStatus" aria-live="polite">Go WASMを読み込み中…</span>
 </div>
 
 <div id="map"></div>
@@ -155,6 +156,8 @@
 </footer>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="./wasm/wasm_exec.js"></script>
+<script src="./wasm/wasm-loader.js"></script>
 <script>
 "use strict";
 const BASE_SPOTS = [
@@ -464,6 +467,11 @@ $("legend").innerHTML = Object.values(TYPES).map(t =>
   + `<span><i class="dot" style="background:#888"></i>座標未確認（一覧のみ）</span>`;
 
 function haversineKm(a, b){
+  // Go WASMを優先。ロード前・未対応時は既存JS計算へフォールバックする。
+  if (window.MinyoGo && window.MinyoGo.validCoordinates(a.lat, a.lon) &&
+      window.MinyoGo.validCoordinates(b.lat, b.lon)) {
+    return window.MinyoGo.distanceKm(a.lat, a.lon, b.lat, b.lon);
+  }
   const R = 6371, rad = Math.PI/180;
   const dLat = (b.lat-a.lat)*rad, dLon = (b.lon-a.lon)*rad;
   const h = Math.sin(dLat/2)**2 + Math.cos(a.lat*rad)*Math.cos(b.lat*rad)*Math.sin(dLon/2)**2;
@@ -764,6 +772,21 @@ $("quizForm").addEventListener("submit", async event => {
     $("quizSubmit").disabled = false;
   }
 });
+
+if (typeof window.loadMinyoGoWasm === "function") {
+  window.loadMinyoGoWasm({ wasmURL: "./wasm/minyo-go.wasm" })
+    .then(api => {
+      window.MinyoGo = api;
+      $("wasmStatus").textContent = "Go WASM稼働中（距離計算）";
+      render();
+    })
+    .catch(error => {
+      $("wasmStatus").textContent = "Go WASM未使用（JS計算で継続）";
+      console.warn("Go WASM unavailable; using JavaScript fallback:", error);
+    });
+} else {
+  $("wasmStatus").textContent = "Go WASM未配信（JS計算で継続）";
+}
 
 if (API_ENABLED) {
   $("apiStatus").textContent = "API接続を確認中…";
