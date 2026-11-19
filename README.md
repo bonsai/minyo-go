@@ -144,3 +144,24 @@ npm test
 3. Actions → **Deploy to Cloudflare** → Run workflow を実行する。
 
 この手動ワークフローは、D1 migration適用 → verifiedスポット・クイズ投入 → Worker/静的UIデプロイの順に実行する。通常のpushでは本番デプロイしない。
+
+
+## Go WebAssembly（ブラウザ実行）
+
+ブラウザ向けの実行基盤はTypeScriptへの置き換えではなく、GoをWebAssembly（WASM）へコンパイルする方針。Cloudflare Workers + D1 のTypeScript実装は独立リポジトリ [bonsai/bon-go](https://github.com/bonsai/bon-go) に分離した。
+
+- `cmd/wasm/`：ブラウザから呼び出すGo WASMエントリーポイント
+- `internal/geo/`：ブラウザとGoサーバーで共有する座標検証・距離計算
+- `cmd/server/`：Go + SQLiteの参照API
+- `web/`：WASMローダーとブラウザUI（次段階で実装）
+
+初期WASM APIは `window.MinyoGo` として公開し、`distanceKm(lat1, lon1, lat2, lon2)` と `validCoordinates(lat, lon)` を提供する。WASMはクライアント側の計算・UI補助に使い、スタンプ獲得の最終判定と保存は必ずサーバーAPI側で行う。WASMやブラウザ内の値は改変可能なため、本人認証・位置情報の真正性を保証するものではない。
+
+### WASMビルド
+
+```sh
+GOOS=js GOARCH=wasm go build -o /tmp/minyo-go.wasm ./cmd/wasm
+go test ./...
+```
+
+GitHub Actionsでは通常のGoテストに加えてWASM向けクロスビルドを実行する。
