@@ -50,7 +50,7 @@
   },
   "progress": {
     "implementation_estimate_percent": 45,
-    "basis": "Goサーバー、SQLite/WALと接続ごとのPRAGMA、マイグレーション、スポット/クイズ取込、スポット/クイズ/回答/スタンプ/進捗API、サーバー側30km判定、既存map.htmlのAPI接続、単体テストとCIを追加。クイズ原稿データ、現地確認済み座標、CI実行結果、本番認証、負荷計測は未完了。",
+    "basis": "Goサーバー、SQLite/WALと接続ごとのPRAGMA、マイグレーション、スポット/クイズ取込、スポット/クイズ/回答/スタンプ/進捗API、サーバー側30km判定、既存map.htmlのAPI接続、単体テストとCIを追加。クイズ原稿データ、現地確認済み座標、CI実行結果、本番認証、負荷計測は未完了。 クイズ原稿48問を追加し、全16スポット各3問の統合インポートテスト、回答位置・重複選択肢・出典メタデータの静的検査、Go CIを確認済み。",
     "exclude_issue_creation_from_completion": true
   },
   "cards": [
@@ -188,7 +188,7 @@
       "id": "issue-10",
       "issue": 10,
       "title": "DATA: 16スポット×3問の出典確認済みクイズ原稿48問を作成・登録する",
-      "status": "backlog",
+      "status": "done",
       "priority": "P0",
       "depends_on": [
         "issue-3",
