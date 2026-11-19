@@ -149,7 +149,11 @@ func TestConcurrentAttemptsAwardOnlyOneStamp(t *testing.T) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			res := postAttempt(t, server, answers, true)
+			payload := attemptRequest{UserID:"user-1", SpotID:"spot-1", Answers:answers, TestMode:true}
+			body, _ := json.Marshal(payload)
+			req := httptest.NewRequest(http.MethodPost, "/api/attempts", bytes.NewReader(body))
+			res := httptest.NewRecorder()
+			server.Handler().ServeHTTP(res, req)
 			statuses <- res.Code
 		}()
 	}
