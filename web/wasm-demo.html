@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MINYO-GO Go WASM demo</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 42rem; margin: 3rem auto; padding: 0 1rem; line-height: 1.6; }
+    code, output { font-family: ui-monospace, monospace; }
+    output { display: block; padding: 1rem; background: #f3f4f6; border-radius: .5rem; overflow-wrap: anywhere; }
+  </style>
+</head>
+<body>
+  <h1>MINYO-GO / Go WebAssembly</h1>
+  <p>距離計算と座標検証をGo WASMで実行する最小デモです。</p>
+  <p id="status" role="status">Go WASMを読み込み中…</p>
+  <h2>大阪城から通天閣まで</h2>
+  <output id="distance">計算待ち</output>
+  <h2>座標検証</h2>
+  <output id="validation">検証待ち</output>
+  <script src="./wasm_exec.js"></script>
+  <script src="./wasm-loader.js"></script>
+  <script>
+    (async function () {
+      const status = document.getElementById("status");
+      try {
+        const api = await window.loadMinyoGoWasm();
+        const km = api.distanceKm(34.6873, 135.5262, 34.6525, 135.5063);
+        document.getElementById("distance").textContent =
+          km.toFixed(2) + " km（Go WASM / v" + api.version + "）";
+        document.getElementById("validation").textContent =
+          "有効: " + api.validCoordinates(34.6873, 135.5262) +
+          " / 無効: " + api.validCoordinates(95, 200);
+        status.textContent = "Go WASM 起動成功";
+      } catch (error) {
+        status.textContent = "WASMを起動できませんでした: " + error.message;
+      }
+    })();
+  </script>
+</body>
+</html>
