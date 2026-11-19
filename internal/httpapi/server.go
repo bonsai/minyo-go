@@ -6,7 +6,7 @@ import (
 	"errors"
 	"net/http"
 	"strings"
-	"math"
+	"github.com/bonsai/minyo-go/internal/geo"
 )
 
 type Server struct {
@@ -202,7 +202,7 @@ func (s *Server) submitAttempt(w http.ResponseWriter, r *http.Request) {
 			writeJSON(w, http.StatusConflict, map[string]string{"error": "this spot has no field-verified check-in coordinates"})
 			return
 		}
-		if haversineKm(*request.Latitude, *request.Longitude, spotLat.Float64, spotLon.Float64) > 30 {
+		if geo.DistanceKm(*request.Latitude, *request.Longitude, spotLat.Float64, spotLon.Float64) > 30 {
 			writeJSON(w, http.StatusForbidden, map[string]string{"error": "outside the 30 km GET radius"})
 			return
 		}
@@ -331,15 +331,6 @@ func (s *Server) getStamps(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"user_id": userID, "stamps": items, "count": len(items)})
-}
-
-func haversineKm(lat1, lon1, lat2, lon2 float64) float64 {
-	const earthRadiusKm = 6371.0
-	toRadians := func(degrees float64) float64 { return degrees * math.Pi / 180 }
-	dLat := toRadians(lat2 - lat1)
-	dLon := toRadians(lon2 - lon1)
-	a := math.Sin(dLat/2)*math.Sin(dLat/2) + math.Cos(toRadians(lat1))*math.Cos(toRadians(lat2))*math.Sin(dLon/2)*math.Sin(dLon/2)
-	return 2 * earthRadiusKm * math.Asin(math.Sqrt(a))
 }
 
 func (s *Server) getProgress(w http.ResponseWriter, r *http.Request) {
