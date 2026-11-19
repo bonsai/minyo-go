@@ -14,6 +14,7 @@ import (
 func main() {
 	databasePath := flag.String("db", envOr("MINYO_GO_DB", "minyo-go.db"), "SQLite database path")
 	importPath := flag.String("import-spots", "", "import a verified spots JSON file and exit")
+	quizPath := flag.String("import-quizzes", "", "import an authored three-question-per-spot JSON file and exit")
 	address := flag.String("addr", envOr("MINYO_GO_ADDR", ":8080"), "HTTP listen address")
 	flag.Parse()
 
@@ -29,6 +30,14 @@ func main() {
 			log.Fatalf("import spots: %v", err)
 		}
 		log.Printf("imported %d verified spots", count)
+		return
+	}
+	if *quizPath != "" {
+		count, err := seed.ImportQuestions(database, *quizPath)
+		if err != nil {
+			log.Fatalf("import quizzes: %v", err)
+		}
+		log.Printf("imported %d quiz questions", count)
 		return
 	}
 
