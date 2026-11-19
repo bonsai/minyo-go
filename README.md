@@ -153,7 +153,7 @@ npm test
 - `cmd/wasm/`：ブラウザから呼び出すGo WASMエントリーポイント
 - `internal/geo/`：ブラウザとGoサーバーで共有する座標検証・距離計算
 - `cmd/server/`：Go + SQLiteの参照API
-- `web/`：公式ランタイムを使うWASMローダーと動作確認デモ
+- `web/`：WASMローダーと動作確認デモ。歌map配信用アセットは `public/wasm/` にビルド
 
 初期WASM APIは `window.MinyoGo` として公開し、`distanceKm(lat1, lon1, lat2, lon2)` と `validCoordinates(lat, lon)` を提供する。WASMはクライアント側の計算・UI補助に使い、スタンプ獲得の最終判定と保存は必ずサーバーAPI側で行う。WASMやブラウザ内の値は改変可能なため、本人認証・位置情報の真正性を保証するものではない。
 
@@ -173,11 +173,10 @@ Go公式の `wasm_exec.js` をローカルのGo toolchainから取得し、WASM�
 
 ```sh
 sh scripts/build-wasm.sh
-# web/dist/ に minyo-go.wasm / wasm_exec.js / wasm-loader.js / index.html を生成
-python3 -m http.server 8000 -d web/dist
-# http://localhost:8000/ を開く
+# public/wasm/ に minyo-go.wasm / wasm_exec.js / wasm-loader.js を生成
+# Goサーバーで歌mapを起動し、http://localhost:8080/map.html を開く
 ```
 
-`web/wasm-demo.html` は大阪城〜通天閣の距離計算と座標バリデーションをGo WASMで実行する最小デモ。CIは同じビルドスクリプトを実行し、`minyo-go-wasm` artifactとしてバンドルを保存する。生成物のWASMバイナリと公式ランタイムはGit管理しない。
+`web/wasm-demo.html` は大阪城〜通天閣の距離計算と座標バリデーションをGo WASMで実行する最小デモ。歌map (`public/map.html`) も同じWASMを読み込み、現在地からスポットまでの距離計算にGoを優先利用する。WASMロード前またはロード失敗時は既存JavaScript計算へフォールバックする。CIは同じビルドスクリプトを実行し、`minyo-go-wasm` artifactとして `public/wasm/` を保存する。生成物のWASMバイナリと公式ランタイムはGit管理しない。
 
 WASMロードに失敗した場合はデモ上にエラーを表示する。距離計算等のクライアント補助処理に限定し、スタンプの最終判定・保存はサーバーAPIに残す。
