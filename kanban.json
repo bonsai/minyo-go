@@ -10,7 +10,8 @@
       "SQLiteはminyo-go内部のDBとし、MINYO LAND共通DBにはしない",
       "通常は30km圏内で取得し、既存のテストモードを維持する",
       "不正解ならスタンプを付与せず再挑戦可能",
-      "同一ユーザー・同一スポットのスタンプは重複付与しない"
+      "同一ユーザー・同一スポットのスタンプは重複付与しない",
+      "本番DBはCloudflare D1を採用。APIはWorkersへ移植し、既存Go実装は仕様参照・ローカル検証用に維持する。"
     ]
   },
   "columns": [
@@ -50,7 +51,7 @@
   },
   "progress": {
     "implementation_estimate_percent": 45,
-    "basis": "Goサーバー、SQLite/WALと接続ごとのPRAGMA、マイグレーション、スポット/クイズ取込、スポット/クイズ/回答/スタンプ/進捗API、サーバー側30km判定、既存map.htmlのAPI接続、単体テストとCIを追加。クイズ原稿データ、現地確認済み座標、CI実行結果、本番認証、負荷計測は未完了。 クイズ原稿48問を追加し、全16スポット各3問の統合インポートテスト、回答位置・重複選択肢・出典メタデータの静的検査、Go CIを確認済み。",
+    "basis": "Goサーバー、SQLite/WALと接続ごとのPRAGMA、マイグレーション、スポット/クイズ取込、スポット/クイズ/回答/スタンプ/進捗API、サーバー側30km判定、既存map.htmlのAPI接続、単体テストとCIを追加。クイズ原稿データ、現地確認済み座標、CI実行結果、本番認証、負荷計測は未完了。 クイズ原稿48問を追加し、全16スポット各3問の統合インポートテスト、回答位置・重複選択肢・出典メタデータの静的検査、Go CIを確認済み。 Cloudflare D1採用を決定し、Workers API移植・静的アセット配信・D1 seed/migration・本番検証をIssue #14に分解。",
     "exclude_issue_creation_from_completion": true
   },
   "cards": [
@@ -253,6 +254,29 @@
         "ci"
       ],
       "url": "https://github.com/bonsai/minyo-go/issues/13"
+    },
+    {
+      "id": "issue-14",
+      "issue": 14,
+      "title": "CLOUDFLARE: D1 + Workersへ移行してminyo-goを公開する",
+      "status": "ready",
+      "priority": "P0",
+      "depends_on": [
+        "issue-2",
+        "issue-3",
+        "issue-5",
+        "issue-6",
+        "issue-7",
+        "issue-8",
+        "issue-10"
+      ],
+      "labels": [
+        "cloudflare",
+        "database",
+        "api",
+        "deployment"
+      ],
+      "url": "https://github.com/bonsai/minyo-go/issues/14"
     }
   ],
   "milestones": [
@@ -284,6 +308,14 @@
         "issue-9"
       ],
       "exit_criteria": "地図から遊べて進捗を確認でき、自動テストが通る"
+    },
+    {
+      "id": "cloudflare_release",
+      "name": "M4: Cloudflare公開",
+      "cards": [
+        "issue-14"
+      ],
+      "exit_criteria": "D1にデータ投入し、既存map.htmlからWorkers APIを利用して本番でスタンプ取得まで確認できる"
     }
   ],
   "out_of_scope": [
