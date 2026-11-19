@@ -85,6 +85,7 @@ JSON形式：
 | GET | `/api/spots/{id}/quiz` | 3問のクイズ（正解は非公開） |
 | POST | `/api/attempts` | 3問の回答判定・スタンプ付与 |
 | GET | `/api/users/{id}/stamps` | ユーザーの取得済みスタンプ |
+| GET | `/api/users/{id}/progress` | 全スポット数・取得数・未取得一覧 |
 
 通常モードではサーバーがスポット座標との距離を計算し、30km以内の場合だけ回答を受け付ける。座標が未確認（NULL）のスポットは通常モードで取得できない。テストモードはサーバー環境変数 `MINYO_GO_ALLOW_TEST_MODE=true` で明示的に許可した場合だけ、リクエストの `test_mode: true` を受け付ける。
 
@@ -95,4 +96,4 @@ go test ./...
 go vet ./...
 ```
 
-現段階の `user_id` はMVP用の識別子であり、認証機構ではない。本番公開前に認証・ユーザー本人性の検証を追加する。SQLiteはWAL + busy_timeout + synchronous=NORMALで運用し、初期段階ではPRAGMAの接続単位差異を避けるためDB接続数を1に制限している。
+現段階の `user_id` はMVP用の識別子であり、認証機構ではない。本番公開前に認証・ユーザー本人性の検証を追加する。SQLiteはWAL + busy_timeout + synchronous=NORMALで運用し、PRAGMAはmoderncのDSN `_pragma` パラメータで物理接続ごとに適用し、DB接続プールは最大8接続としている。SQLiteの書き込み自体は単一writerなので、WALは読み書きの共存を改善するものであり、書き込みを並列化するものではない。
