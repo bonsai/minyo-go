@@ -3,6 +3,7 @@ package db
 import (
 	"path/filepath"
 	"testing"
+	"database/sql"
 )
 
 func TestOpenAppliesMigrationsOnce(t *testing.T) {
@@ -25,4 +26,29 @@ func TestOpenAppliesMigrationsOnce(t *testing.T) {
 		t.Fatal(err)
 	}
 	if columnCount != 1 { t.Fatalf("external_key column count=%d, want 1", columnCount) }
+}
+
+func TestPragmasApplyToEveryPhysicalConnection(t *testing.T) {
+	database, err := Open(filepath.Join(t.TempDir(), "pool.db"))
+	if err != nil { t.Fatal(err) }
+	defer database.Close()
+
+	first, err := database.Conn(t.Context())
+	if err != nil { t.Fatal(err) }
+	defer first.Close()
+	second, err := database.Conn(t.Context())
+	if err != nil { t.Fatal(err) }
+	defer second.Close()
+
+	for index, conn := range []*sql.Conn{first, second} {
+		var foreignKeys, busyTimeout, synchronous int
+		var journalMode string
+		if err := conn.QueryRowContext(t.Context(), "PRAGMA foreign_keys").Scan(&foreignKeys); err != nil { t.Fatal(err) }
+		if err := conn.QueryRowContext(t.Context(), "PRAGMA busy_timeout").Scan(&busyTimeout); err != nil { t.Fatal(err) }
+		if err := conn.QueryRowContext(t.Context(), "PRAGMA synchronous").Scan(&synchronous); err != nil { t.Fatal(err) }
+		if err := conn.QueryRowContext(t.Context(), "PRAGMA journal_mode").Scan(&journalMode); err != nil { t.Fatal(err) }
+		if foreignKeys != 1 || busyTimeout != 5000 || synchronous != 1 || journalMode != "wal" {
+			t.Fatalf("connection %d pragmas: foreign_keys=%d busy_timeout=%d synchronous=%d journal_mode=%s", index, foreignKeys, busyTimeout, synchronous, journalMode)
+		}
+	}
 }
