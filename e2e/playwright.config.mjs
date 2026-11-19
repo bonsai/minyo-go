@@ -15,6 +15,7 @@ export default defineConfig({
     ...devices["Desktop Chrome"],
   },
   webServer: {
+    cwd: "..",
     command: "MINYO_GO_DB=/tmp/minyo-go-e2e.db MINYO_GO_ALLOW_TEST_MODE=true go run ./cmd/server -addr 127.0.0.1:8787",
     url: "http://127.0.0.1:8787/healthz",
     reuseExistingServer: !process.env.CI,
