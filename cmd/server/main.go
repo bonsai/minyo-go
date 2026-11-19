@@ -34,7 +34,7 @@ func main() {
 
 	server := &http.Server{
 		Addr: *address,
-		Handler: httpapi.New(database).Handler(),
+		Handler: httpapi.New(database, os.Getenv("MINYO_GO_ALLOW_TEST_MODE") == "true").Handler(),
 	}
 	log.Printf("MINYO-GO API listening on %s", *address)
 	log.Fatal(server.ListenAndServe())
