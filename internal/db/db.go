@@ -52,18 +52,44 @@ func Open(path string) (*sql.DB, error) {
 }
 
 func migrate(database *sql.DB) error {
+	if _, err := database.Exec(`CREATE TABLE IF NOT EXISTS schema_migrations (
+		name TEXT PRIMARY KEY,
+		applied_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+	)`); err != nil {
+		return fmt.Errorf("create migration ledger: %w", err)
+	}
 	entries, err := fs.Glob(migrationFiles, "migrations/*.sql")
 	if err != nil {
 		return fmt.Errorf("list migrations: %w", err)
 	}
 	sort.Strings(entries)
 	for _, name := range entries {
+		var applied int
+		err := database.QueryRow("SELECT COUNT(*) FROM schema_migrations WHERE name = ?", name).Scan(&applied)
+		if err != nil {
+			return fmt.Errorf("check migration %s: %w", name, err)
+		}
+		if applied > 0 {
+			continue
+		}
 		body, err := migrationFiles.ReadFile(name)
 		if err != nil {
 			return fmt.Errorf("read migration %s: %w", name, err)
 		}
-		if _, err := database.Exec(string(body)); err != nil {
+		tx, err := database.Begin()
+		if err != nil {
+			return fmt.Errorf("begin migration %s: %w", name, err)
+		}
+		if _, err := tx.Exec(string(body)); err != nil {
+			tx.Rollback()
 			return fmt.Errorf("apply migration %s: %w", name, err)
+		}
+		if _, err := tx.Exec("INSERT INTO schema_migrations(name) VALUES (?)", name); err != nil {
+			tx.Rollback()
+			return fmt.Errorf("record migration %s: %w", name, err)
+		}
+		if err := tx.Commit(); err != nil {
+			return fmt.Errorf("commit migration %s: %w", name, err)
 		}
 	}
 	return nil
