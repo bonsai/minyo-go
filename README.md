@@ -117,7 +117,7 @@ npm run dev
 ### 本番準備・デプロイ
 
 ```sh
-npx wrangler d1 create minyo-go
+npm run db:create
 # 出力された database_id を wrangler.jsonc に設定
 npm run db:remote
 npm run seed:remote
