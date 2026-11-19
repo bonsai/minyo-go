@@ -31,6 +31,23 @@ jobs:
         run: go test ./...
       - name: Vet
         run: go vet ./...
+      - name: Setup Node.js for browser tests
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright and browser
+        run: |
+          npm install --no-package-lock
+          npx playwright install --with-deps chromium
+      - name: Prepare isolated E2E database
+        run: |
+          rm -f /tmp/minyo-go-e2e.db
+          go run ./cmd/server -db /tmp/minyo-go-e2e.db -import-spots spots-verified.json
+          go run ./cmd/server -db /tmp/minyo-go-e2e.db -import-quizzes quizzes.json
+      - name: Run real-browser E2E
+        env:
+          CI: true
+        run: npm run test:e2e
       - name: Upload browser bundle
         uses: actions/upload-artifact@v4
         with:
