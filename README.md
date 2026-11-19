@@ -47,6 +47,7 @@ Go 1.23 と pure-Go SQLite driver `modernc.org/sqlite` を使用する。DBは�
 ```sh
 go mod tidy
 go run ./cmd/server -import-spots spots-verified.json
+go run ./cmd/server -import-quizzes quizzes.json
 go run ./cmd/server -addr :8080
 ```
 
