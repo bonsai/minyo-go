@@ -19,28 +19,19 @@ func Open(path string) (*sql.DB, error) {
 	if dsn == "" {
 		dsn = "minyo-go.db"
 	}
+	separator := "?"
+	if strings.Contains(dsn, "?") {
+		separator = "&"
+	}
+	// modernc applies every _pragma value to each physical connection as it opens.
+	dsn += separator + "_pragma=busy_timeout(5000)&_pragma=journal_mode(WAL)&_pragma=synchronous(NORMAL)&_pragma=foreign_keys(ON)"
 	database, err := sql.Open("sqlite", dsn)
 	if err != nil {
 		return nil, fmt.Errorf("open sqlite: %w", err)
 	}
+	database.SetMaxOpenConns(8)
+	database.SetMaxIdleConns(8)
 
-	// Keep one physical connection so connection-scoped PRAGMAs are applied
-	// consistently in this first MVP. WAL still protects the database file
-	// from reader/writer conflicts with other processes.
-	database.SetMaxOpenConns(1)
-	database.SetMaxIdleConns(1)
-
-	for _, statement := range []string{
-		"PRAGMA foreign_keys = ON",
-		"PRAGMA busy_timeout = 5000",
-		"PRAGMA journal_mode = WAL",
-		"PRAGMA synchronous = NORMAL",
-	} {
-		if _, err := database.Exec(statement); err != nil {
-			database.Close()
-			return nil, fmt.Errorf("%s: %w", statement, err)
-		}
-	}
 	if err := database.Ping(); err != nil {
 		database.Close()
 		return nil, fmt.Errorf("ping sqlite: %w", err)
