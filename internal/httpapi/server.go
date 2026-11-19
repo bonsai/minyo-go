@@ -6,13 +6,19 @@ import (
 	"errors"
 	"net/http"
 	"strings"
+	"math"
 )
 
 type Server struct {
 	db *sql.DB
+	allowTestMode bool
 }
 
-func New(database *sql.DB) *Server { return &Server{db: database} }
+// New creates an API server. Test mode must be explicitly enabled by the operator.
+func New(database *sql.DB, allowTestMode ...bool) *Server {
+	allow := len(allowTestMode) > 0 && allowTestMode[0]
+	return &Server{db: database, allowTestMode: allow}
+}
 
 func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
@@ -135,6 +141,9 @@ type attemptRequest struct {
 	UserID string `json:"user_id"`
 	SpotID string `json:"spot_id"`
 	Answers []submittedAnswer `json:"answers"`
+	Latitude *float64 `json:"latitude"`
+	Longitude *float64 `json:"longitude"`
+	TestMode bool `json:"test_mode"`
 }
 
 func (s *Server) submitAttempt(w http.ResponseWriter, r *http.Request) {
@@ -151,6 +160,35 @@ func (s *Server) submitAttempt(w http.ResponseWriter, r *http.Request) {
 	if request.UserID == "" || request.SpotID == "" || len(request.Answers) != 3 {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "user_id, spot_id and exactly three answers are required"})
 		return
+	}
+
+	var spotLat, spotLon sql.NullFloat64
+	if err := s.db.QueryRowContext(r.Context(), "SELECT lat, lon FROM spots WHERE id = ?", request.SpotID).Scan(&spotLat, &spotLon); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			writeJSON(w, http.StatusNotFound, map[string]string{"error": "spot not found"})
+		} else {
+			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "could not verify spot"})
+		}
+		return
+	}
+	if request.TestMode {
+		if !s.allowTestMode {
+			writeJSON(w, http.StatusForbidden, map[string]string{"error": "test mode is disabled on this server"})
+			return
+		}
+	} else {
+		if request.Latitude == nil || request.Longitude == nil || *request.Latitude < -90 || *request.Latitude > 90 || *request.Longitude < -180 || *request.Longitude > 180 {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "valid latitude and longitude are required"})
+			return
+		}
+		if !spotLat.Valid || !spotLon.Valid {
+			writeJSON(w, http.StatusConflict, map[string]string{"error": "this spot has no field-verified check-in coordinates"})
+			return
+		}
+		if haversineKm(*request.Latitude, *request.Longitude, spotLat.Float64, spotLon.Float64) > 30 {
+			writeJSON(w, http.StatusForbidden, map[string]string{"error": "outside the 30 km GET radius"})
+			return
+		}
 	}
 
 	tx, err := s.db.BeginTx(r.Context(), nil)
@@ -276,4 +314,13 @@ func (s *Server) getStamps(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"user_id": userID, "stamps": items, "count": len(items)})
+}
+
+func haversineKm(lat1, lon1, lat2, lon2 float64) float64 {
+	const earthRadiusKm = 6371.0
+	toRadians := func(degrees float64) float64 { return degrees * math.Pi / 180 }
+	dLat := toRadians(lat2 - lat1)
+	dLon := toRadians(lon2 - lon1)
+	a := math.Sin(dLat/2)*math.Sin(dLat/2) + math.Cos(toRadians(lat1))*math.Cos(toRadians(lat2))*math.Sin(dLon/2)*math.Sin(dLon/2)
+	return 2 * earthRadiusKm * math.Asin(math.Sqrt(a))
 }
