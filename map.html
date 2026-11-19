@@ -496,6 +496,7 @@ function esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&
 
 function getButtonHTML(s){
   if (API_ENABLED) {
+    if (s.custom) return `<span class="dist">追加スポットは台帳登録後にクイズ可能</span>`;
     if (apiStamps.has(s.id)) return `<span class="got">🏅 取得済み</span>`;
     return `<button type="button" class="get" data-quiz="${esc(s.id)}">🎓 3問クイズに挑戦</button>`;
   }
