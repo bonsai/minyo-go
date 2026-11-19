@@ -134,3 +134,13 @@ Workers APIは既存Go APIと同じ主要エンドポイントを実装する。
 npm run typecheck
 npm test
 ```
+
+### GitHub Actionsから本番デプロイ
+
+1. Cloudflare DashboardでD1データベース `minyo-go` を作成し、返されたIDを `wrangler.jsonc` の `database_id` に設定してpushする。
+2. GitHub Repository Settings → Secrets and variables → Actions に次を設定する。
+   - Secret: `CLOUDFLARE_API_TOKEN`（Workers Scripts と D1 の操作権限を付与）
+   - Variable: `CLOUDFLARE_ACCOUNT_ID`
+3. Actions → **Deploy to Cloudflare** → Run workflow を実行する。
+
+この手動ワークフローは、D1 migration適用 → verifiedスポット・クイズ投入 → Worker/静的UIデプロイの順に実行する。通常のpushでは本番デプロイしない。
