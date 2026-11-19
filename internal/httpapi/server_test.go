@@ -115,3 +115,24 @@ func TestNormalModeRejectsUnverifiedSpotCoordinates(t *testing.T) {
 }
 
 func floatPtr(value float64) *float64 { return &value }
+
+func TestProgressIncludesTotalAndCollectedCounts(t *testing.T) {
+	server, closeDB := testServer(t, true)
+	defer closeDB()
+	req := httptest.NewRequest(http.MethodGet, "/api/users/new-user/progress", nil)
+	res := httptest.NewRecorder()
+	server.Handler().ServeHTTP(res, req)
+	if res.Code != http.StatusOK { t.Fatalf("status=%d body=%s", res.Code, res.Body.String()) }
+	if !bytes.Contains(res.Body.Bytes(), []byte(`"total_spots":1`)) || !bytes.Contains(res.Body.Bytes(), []byte(`"collected_spots":0`)) {
+		t.Fatalf("unexpected progress payload: %s", res.Body.String())
+	}
+}
+
+func TestQuizUnknownSpotReturnsNotFound(t *testing.T) {
+	server, closeDB := testServer(t, true)
+	defer closeDB()
+	req := httptest.NewRequest(http.MethodGet, "/api/spots/missing/quiz", nil)
+	res := httptest.NewRecorder()
+	server.Handler().ServeHTTP(res, req)
+	if res.Code != http.StatusNotFound { t.Fatalf("status=%d, want %d", res.Code, http.StatusNotFound) }
+}
