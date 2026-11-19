@@ -1,0 +1,780 @@
+{
+  "schema_version": "1.0.0",
+  "dataset": "minyo-go-quizzes",
+  "status": "source-reviewed-draft",
+  "notes": [
+    "各スポット3問。source_url/source_title/evidence_levelは設問ごとの出典管理用メタデータであり、現行Go importerは未知フィールドを読み飛ばしてDBには保存しない。",
+    "二次資料に依存する設問はevidence_levelをsecondary_documentedとする。",
+    "nara-verified-003は歌の作者・歌番号の記述に混同の疑いがあるため、作者・歌番号を問わず、設置場所・認定・石材のみを出題する。"
+  ],
+  "questions": [
+    {
+      "key": "osaka-verified-001-q1",
+      "spot_id": "osaka-verified-001",
+      "prompt": "淀川三十石船が江戸時代に結んでいた主な区間はどこでしょう？",
+      "choices": [
+        "京都伏見と大坂八軒家",
+        "大阪港と神戸港",
+        "奈良と和歌山",
+        "伏見と琵琶湖"
+      ],
+      "answer_index": 0,
+      "sort_order": 1,
+      "source_url": "https://www.city.takatsuki.osaka.jp/site/history/63578.html",
+      "source_title": "高槻市公式・淀川三十石船船唄",
+      "evidence_level": "official_or_institutional"
+    },
+    {
+      "key": "osaka-verified-001-q2",
+      "spot_id": "osaka-verified-001",
+      "prompt": "「三十石船」の名の由来として説明されているのは何でしょう？",
+      "choices": [
+        "米30石相当の積載量",
+        "船頭が30人いたこと",
+        "30日間の航海",
+        "船の長さが30間だったこと"
+      ],
+      "answer_index": 0,
+      "sort_order": 2,
+      "source_url": "https://www.city.takatsuki.osaka.jp/site/history/63578.html",
+      "source_title": "高槻市公式・淀川三十石船船唄",
+      "evidence_level": "official_or_institutional"
+    },
+    {
+      "key": "osaka-verified-001-q3",
+      "spot_id": "osaka-verified-001",
+      "prompt": "船頭たちが歌った船唄には、どのような役割がありましたか？",
+      "choices": [
+        "船客を楽しませ、船の位置も知らせた",
+        "船の速度を測った",
+        "税関の合図を送った",
+        "船の修理手順を伝えた"
+      ],
+      "answer_index": 0,
+      "sort_order": 3,
+      "source_url": "https://www.city.takatsuki.osaka.jp/site/history/63578.html",
+      "source_title": "高槻市公式・淀川三十石船船唄",
+      "evidence_level": "official_or_institutional"
+    },
+    {
+      "key": "nara-verified-001-q1",
+      "spot_id": "nara-verified-001",
+      "prompt": "三室山遊歩道の万葉歌碑に刻まれた歌の作者は誰でしょう？",
+      "choices": [
+        "大伴家持",
+        "山上憶良",
+        "柿本人麻呂",
+        "額田王"
+      ],
+      "answer_index": 0,
+      "sort_order": 1,
+      "source_url": "https://www.town.sango.nara.jp/soshiki/19/1693.html",
+      "source_title": "三郷町公式・三室山遊歩道万葉歌碑",
+      "evidence_level": "official_or_institutional"
+    },
+    {
+      "key": "nara-verified-001-q2",
+      "spot_id": "nara-verified-001",
+      "prompt": "この歌が収められているのは『万葉集』の何巻でしょう？",
+      "choices": [
+        "巻20",
+        "巻1",
+        "巻5",
+        "巻12"
+      ],
+      "answer_index": 0,
+      "sort_order": 2,
+      "source_url": "https://www.town.sango.nara.jp/soshiki/19/1693.html",
+      "source_title": "三郷町公式・三室山遊歩道万葉歌碑",
+      "evidence_level": "official_or_institutional"
+    },
+    {
+      "key": "nara-verified-001-q3",
+      "spot_id": "nara-verified-001",
+      "prompt": "三郷町の解説によると、大伴家持がこの歌を詠んだのは何を見たときでしょう？",
+      "choices": [
+        "難波へ向かう途中に龍田山の桜を見たとき",
+        "富士山の初雪を見たとき",
+        "吉野川の紅葉を見たとき",
+        "筑紫から帰る船上"
+      ],
+      "answer_index": 0,
+      "sort_order": 3,
+      "source_url": "https://www.town.sango.nara.jp/soshiki/19/1693.html",
+      "source_title": "三郷町公式・三室山遊歩道万葉歌碑",
+      "evidence_level": "official_or_institutional"
+    },
+    {
+      "key": "nara-verified-002-q1",
+      "spot_id": "nara-verified-002",
+      "prompt": "「きらきらぼし」の日本語詩を作った人は誰でしょう？",
+      "choices": [
+        "武鹿悦子",
+        "東くめ",
+        "与謝野晶子",
+        "金子みすゞ"
+      ],
+      "answer_index": 0,
+      "sort_order": 1,
+      "source_url": "https://www.lib.sango.nara.jp/bunko.html",
+      "source_title": "三郷町立図書館・武鹿文庫",
+      "evidence_level": "official_or_institutional"
+    },
+    {
+      "key": "nara-verified-002-q2",
+      "spot_id": "nara-verified-002",
+      "prompt": "武鹿悦子の「きらきらぼし」歌碑が建立された場所はどこでしょう？",
+      "choices": [
+        "三郷町立図書館の玄関前",
+        "三室山の山頂",
+        "信貴山下駅のホーム",
+        "町役場の議場"
+      ],
+      "answer_index": 0,
+      "sort_order": 2,
+      "source_url": "https://www.lib.sango.nara.jp/bunko.html",
+      "source_title": "三郷町立図書館・武鹿文庫",
+      "evidence_level": "official_or_institutional"
+    },
+    {
+      "key": "nara-verified-002-q3",
+      "spot_id": "nara-verified-002",
+      "prompt": "図書館の説明によると、武鹿悦子が「きらきらぼし」の詩を新たに作ったのは、どの教材向けでしょう？",
+      "choices": [
+        "小学1年生の音楽教材",
+        "中学校の合唱教材",
+        "高校の古典教材",
+        "保育士試験の教材"
+      ],
+      "answer_index": 0,
+      "sort_order": 3,
+      "source_url": "https://www.lib.sango.nara.jp/bunko.html",
+      "source_title": "三郷町立図書館・武鹿文庫",
+      "evidence_level": "official_or_institutional"
+    },
+    {
+      "key": "wakayama-verified-001-q1",
+      "spot_id": "wakayama-verified-001",
+      "prompt": "童謡「はとぽっぽ」の作詞者・東くめが生まれた場所はどこでしょう？",
+      "choices": [
+        "新宮市",
+        "和歌山市",
+        "岩出市",
+        "海南市"
+      ],
+      "answer_index": 0,
+      "sort_order": 1,
+      "source_url": "https://www.pref.wakayama.lg.jp/prefg/081300/d00214672.html",
+      "source_title": "和歌山県公式・はとぽっぽの歌碑",
+      "evidence_level": "official_or_institutional"
+    },
+    {
+      "key": "wakayama-verified-001-q2",
+      "spot_id": "wakayama-verified-001",
+      "prompt": "新宮駅前に歌碑が建てられた記念の出来事は何でしょう？",
+      "choices": [
+        "東くめが新宮市の名誉市民になったこと",
+        "新宮駅の開業100周年",
+        "童謡の全国大会開催",
+        "滝廉太郎の来訪"
+      ],
+      "answer_index": 0,
+      "sort_order": 2,
+      "source_url": "https://www.pref.wakayama.lg.jp/prefg/081300/d00214672.html",
+      "source_title": "和歌山県公式・はとぽっぽの歌碑",
+      "evidence_level": "official_or_institutional"
+    },
+    {
+      "key": "wakayama-verified-001-q3",
+      "spot_id": "wakayama-verified-001",
+      "prompt": "和歌山県の紹介で、東くめの代表作として「はとぽっぽ」と並んで挙げられている曲は何でしょう？",
+      "choices": [
+        "お正月",
+        "荒城の月",
+        "赤とんぼ",
+        "春の小川"
+      ],
+      "answer_index": 0,
+      "sort_order": 3,
+      "source_url": "https://www.pref.wakayama.lg.jp/prefg/081300/d00214672.html",
+      "source_title": "和歌山県公式・はとぽっぽの歌碑",
+      "evidence_level": "official_or_institutional"
+    },
+    {
+      "key": "wakayama-verified-002-q1",
+      "spot_id": "wakayama-verified-002",
+      "prompt": "玉津島神社の万葉歌碑に含まれる歌の一つは『万葉集』の何巻917番でしょう？",
+      "choices": [
+        "巻6",
+        "巻1",
+        "巻12",
+        "巻20"
+      ],
+      "answer_index": 0,
+      "sort_order": 1,
+      "source_url": "https://www.city.wakayama.wakayama.jp/kankou/kankouspot/1066933/index.html",
+      "source_title": "和歌山市公式・和歌の浦万葉歌碑",
+      "evidence_level": "official_or_institutional"
+    },
+    {
+      "key": "wakayama-verified-002-q2",
+      "spot_id": "wakayama-verified-002",
+      "prompt": "和歌山市の説明によると、724年に紀伊国へ行幸した天皇は誰でしょう？",
+      "choices": [
+        "聖武天皇",
+        "天武天皇",
+        "桓武天皇",
+        "後鳥羽天皇"
+      ],
+      "answer_index": 0,
+      "sort_order": 2,
+      "source_url": "https://www.city.wakayama.wakayama.jp/kankou/kankouspot/1066933/index.html",
+      "source_title": "和歌山市公式・和歌の浦万葉歌碑",
+      "evidence_level": "official_or_institutional"
+    },
+    {
+      "key": "wakayama-verified-002-q3",
+      "spot_id": "wakayama-verified-002",
+      "prompt": "和歌の浦の景観を讃える歌を詠んだ、行幸に供奉した宮廷歌人は誰でしょう？",
+      "choices": [
+        "山部赤人",
+        "大伴家持",
+        "山上憶良",
+        "柿本人麻呂"
+      ],
+      "answer_index": 0,
+      "sort_order": 3,
+      "source_url": "https://www.city.wakayama.wakayama.jp/kankou/kankouspot/1066933/index.html",
+      "source_title": "和歌山市公式・和歌の浦万葉歌碑",
+      "evidence_level": "official_or_institutional"
+    },
+    {
+      "key": "wakayama-verified-003-q1",
+      "spot_id": "wakayama-verified-003",
+      "prompt": "片男波公園「万葉の小路」にある歌碑の一つは『万葉集』の何巻3168番でしょう？",
+      "choices": [
+        "巻12",
+        "巻1",
+        "巻6",
+        "巻20"
+      ],
+      "answer_index": 0,
+      "sort_order": 1,
+      "source_url": "https://www.city.wakayama.wakayama.jp/kankou/kankouspot/1066933/index.html",
+      "source_title": "和歌山市公式・和歌の浦万葉歌碑",
+      "evidence_level": "official_or_institutional"
+    },
+    {
+      "key": "wakayama-verified-003-q2",
+      "spot_id": "wakayama-verified-003",
+      "prompt": "和歌山市公式案内で、片男波公園の歌碑群につけられている小路の名前は何でしょう？",
+      "choices": [
+        "万葉の小路",
+        "文学の道",
+        "歌人の径",
+        "和歌の散歩道"
+      ],
+      "answer_index": 0,
+      "sort_order": 2,
+      "source_url": "https://www.city.wakayama.wakayama.jp/kankou/kankouspot/1066933/index.html",
+      "source_title": "和歌山市公式・和歌の浦万葉歌碑",
+      "evidence_level": "official_or_institutional"
+    },
+    {
+      "key": "wakayama-verified-003-q3",
+      "spot_id": "wakayama-verified-003",
+      "prompt": "和歌山市の歌碑案内では、片男波公園以外に玉津島神社の歌碑も紹介されています。玉津島神社の歌碑に含まれる巻はどれでしょう？",
+      "choices": [
+        "巻6",
+        "巻15",
+        "巻18",
+        "巻20"
+      ],
+      "answer_index": 0,
+      "sort_order": 3,
+      "source_url": "https://www.city.wakayama.wakayama.jp/kankou/kankouspot/1066933/index.html",
+      "source_title": "和歌山市公式・和歌の浦万葉歌碑",
+      "evidence_level": "official_or_institutional"
+    },
+    {
+      "key": "nara-verified-003-q1",
+      "spot_id": "nara-verified-003",
+      "prompt": "日本遺産認定を記念して万葉歌碑が建立された場所はどこでしょう？",
+      "choices": [
+        "近鉄信貴山下駅前広場",
+        "三室山の山頂",
+        "三郷町立図書館前",
+        "法隆寺の境内"
+      ],
+      "answer_index": 0,
+      "sort_order": 1,
+      "source_url": "https://www.japan-heritage.bunka.go.jp/ja/news/1726/",
+      "source_title": "日本遺産ポータル・万葉歌碑建立のお知らせ",
+      "evidence_level": "official_or_institutional"
+    },
+    {
+      "key": "nara-verified-003-q2",
+      "spot_id": "nara-verified-003",
+      "prompt": "この歌碑の建立を記念するきっかけとなったのは何でしょう？",
+      "choices": [
+        "日本遺産への認定",
+        "駅の新築",
+        "図書館の開館",
+        "鉄道の複線化"
+      ],
+      "answer_index": 0,
+      "sort_order": 2,
+      "source_url": "https://www.japan-heritage.bunka.go.jp/ja/news/1726/",
+      "source_title": "日本遺産ポータル・万葉歌碑建立のお知らせ",
+      "evidence_level": "official_or_institutional"
+    },
+    {
+      "key": "nara-verified-003-q3",
+      "spot_id": "nara-verified-003",
+      "prompt": "日本遺産ポータルの記事によると、歌碑の石材に使われたのはどこの白石でしょう？",
+      "choices": [
+        "瀬戸内海",
+        "琵琶湖",
+        "熊野灘",
+        "諏訪湖"
+      ],
+      "answer_index": 0,
+      "sort_order": 3,
+      "source_url": "https://www.japan-heritage.bunka.go.jp/ja/news/1726/",
+      "source_title": "日本遺産ポータル・万葉歌碑建立のお知らせ",
+      "evidence_level": "official_or_institutional"
+    },
+    {
+      "key": "wakayama-verified-004-q1",
+      "spot_id": "wakayama-verified-004",
+      "prompt": "岩出市公式の説明では、「根来の子守唄」はいつごろから歌い始められたと推考されていますか？",
+      "choices": [
+        "江戸時代",
+        "明治時代",
+        "昭和時代",
+        "平安時代"
+      ],
+      "answer_index": 0,
+      "sort_order": 1,
+      "source_url": "https://www.city.iwade.lg.jp/soshiki/16/1592.html",
+      "source_title": "岩出市公式・伝統芸能",
+      "evidence_level": "official_or_institutional"
+    },
+    {
+      "key": "wakayama-verified-004-q2",
+      "spot_id": "wakayama-verified-004",
+      "prompt": "岩出市公式によると、「根来の子守唄」が歌い継がれてきた中心地域はどこでしょう？",
+      "choices": [
+        "根来寺を中心とする紀の川筋一帯",
+        "熊野灘沿岸",
+        "高野山の山中",
+        "和歌山市の港周辺"
+      ],
+      "answer_index": 0,
+      "sort_order": 2,
+      "source_url": "https://www.city.iwade.lg.jp/soshiki/16/1592.html",
+      "source_title": "岩出市公式・伝統芸能",
+      "evidence_level": "official_or_institutional"
+    },
+    {
+      "key": "wakayama-verified-004-q3",
+      "spot_id": "wakayama-verified-004",
+      "prompt": "この子守唄の継承・普及活動を中心となって進めている団体は何でしょう？",
+      "choices": [
+        "根来の子守唄保存会",
+        "和歌山民謡協会",
+        "紀州童謡合唱団",
+        "岩出観光案内会"
+      ],
+      "answer_index": 0,
+      "sort_order": 3,
+      "source_url": "https://www.city.iwade.lg.jp/soshiki/16/1592.html",
+      "source_title": "岩出市公式・伝統芸能",
+      "evidence_level": "official_or_institutional"
+    },
+    {
+      "key": "osaka-verified-002-q1",
+      "spot_id": "osaka-verified-002",
+      "prompt": "「千里石ぶみの丘」がある公園はどこでしょう？",
+      "choices": [
+        "千里南公園",
+        "万博記念公園",
+        "服部緑地",
+        "大阪城公園"
+      ],
+      "answer_index": 0,
+      "sort_order": 1,
+      "source_url": "https://www.city.suita.osaka.jp/sangyo/1018152/1018167/1018168/1028864/1018169/1009790.html",
+      "source_title": "吹田市公式・千里石ぶみの丘",
+      "evidence_level": "official_or_institutional"
+    },
+    {
+      "key": "osaka-verified-002-q2",
+      "spot_id": "osaka-verified-002",
+      "prompt": "吹田市の説明によると、千里南公園の歌碑・石碑は主に誰の寄贈で設置されましたか？",
+      "choices": [
+        "市民",
+        "国",
+        "外国の大使館",
+        "大学の研究室"
+      ],
+      "answer_index": 0,
+      "sort_order": 2,
+      "source_url": "https://www.city.suita.osaka.jp/sangyo/1018152/1018167/1018168/1028864/1018169/1009790.html",
+      "source_title": "吹田市公式・千里石ぶみの丘",
+      "evidence_level": "official_or_institutional"
+    },
+    {
+      "key": "osaka-verified-002-q3",
+      "spot_id": "osaka-verified-002",
+      "prompt": "千里石ぶみの丘で歌碑が紹介されている歌人は誰でしょう？",
+      "choices": [
+        "与謝野晶子",
+        "樋口一葉",
+        "紫式部",
+        "清少納言"
+      ],
+      "answer_index": 0,
+      "sort_order": 3,
+      "source_url": "https://www.city.suita.osaka.jp/sangyo/1018152/1018167/1018168/1028864/1018169/1009790.html",
+      "source_title": "吹田市公式・千里石ぶみの丘",
+      "evidence_level": "official_or_institutional"
+    },
+    {
+      "key": "osaka-verified-003-q1",
+      "spot_id": "osaka-verified-003",
+      "prompt": "難波八阪神社の歌碑に刻まれた「海ゆかば」の原歌は、どの歌集に由来するでしょう？",
+      "choices": [
+        "万葉集",
+        "古今和歌集",
+        "新古今和歌集",
+        "百人一首"
+      ],
+      "answer_index": 0,
+      "sort_order": 1,
+      "source_url": "https://monument.sakura.ne.jp/27oosakafu.html",
+      "source_title": "大阪府内の歌碑・歌碑データベース",
+      "evidence_level": "secondary_documented"
+    },
+    {
+      "key": "osaka-verified-003-q2",
+      "spot_id": "osaka-verified-003",
+      "prompt": "「海ゆかば」の原歌の作者として台帳に記録されている万葉歌人は誰でしょう？",
+      "choices": [
+        "大伴家持",
+        "山部赤人",
+        "柿本人麻呂",
+        "額田王"
+      ],
+      "answer_index": 0,
+      "sort_order": 2,
+      "source_url": "https://monument.sakura.ne.jp/27oosakafu.html",
+      "source_title": "大阪府内の歌碑・歌碑データベース",
+      "evidence_level": "secondary_documented"
+    },
+    {
+      "key": "osaka-verified-003-q3",
+      "spot_id": "osaka-verified-003",
+      "prompt": "この歌碑がある神社はどこでしょう？",
+      "choices": [
+        "難波八阪神社",
+        "住吉大社",
+        "今宮戎神社",
+        "生國魂神社"
+      ],
+      "answer_index": 0,
+      "sort_order": 3,
+      "source_url": "https://monument.sakura.ne.jp/27oosakafu.html",
+      "source_title": "大阪府内の歌碑・歌碑データベース",
+      "evidence_level": "secondary_documented"
+    },
+    {
+      "key": "osaka-verified-004-q1",
+      "spot_id": "osaka-verified-004",
+      "prompt": "通天閣の真下にある「王将碑」が顕彰している人物は誰でしょう？",
+      "choices": [
+        "将棋棋士の坂田三吉",
+        "歌手の村田英雄",
+        "作曲家の船村徹",
+        "作詞家の西條八十"
+      ],
+      "answer_index": 0,
+      "sort_order": 1,
+      "source_url": "https://www.city.osaka.lg.jp/naniwa/page/0000000886.html",
+      "source_title": "大阪市浪速区公式・王将碑",
+      "evidence_level": "official_or_institutional"
+    },
+    {
+      "key": "osaka-verified-004-q2",
+      "spot_id": "osaka-verified-004",
+      "prompt": "大阪市浪速区の公式説明によると、王将碑が建てられた場所はどこでしょう？",
+      "choices": [
+        "通天閣の真下",
+        "大阪城天守閣前",
+        "新世界市場の屋上",
+        "天王寺公園の入口"
+      ],
+      "answer_index": 0,
+      "sort_order": 2,
+      "source_url": "https://www.city.osaka.lg.jp/naniwa/page/0000000886.html",
+      "source_title": "大阪市浪速区公式・王将碑",
+      "evidence_level": "official_or_institutional"
+    },
+    {
+      "key": "osaka-verified-004-q3",
+      "spot_id": "osaka-verified-004",
+      "prompt": "村田英雄が歌った「王将」のモデルとして紹介されている人物は誰でしょう？",
+      "choices": [
+        "坂田三吉",
+        "升田幸三",
+        "大山康晴",
+        "木村義雄"
+      ],
+      "answer_index": 0,
+      "sort_order": 3,
+      "source_url": "https://tabi-mag.jp/os0165/",
+      "source_title": "ニッポン旅マガジン・王将碑",
+      "evidence_level": "secondary_documented"
+    },
+    {
+      "key": "osaka-verified-005-q1",
+      "spot_id": "osaka-verified-005",
+      "prompt": "「月の法善寺横町」の歌碑がある場所はどこでしょう？",
+      "choices": [
+        "法善寺横丁",
+        "道頓堀橋",
+        "天神橋筋商店街",
+        "黒門市場"
+      ],
+      "answer_index": 0,
+      "sort_order": 1,
+      "source_url": "https://www.monument.sakura.ne.jp/file/tsukinohouzenjiyokochou.html",
+      "source_title": "歌碑データベース・月の法善寺横町",
+      "evidence_level": "secondary_documented"
+    },
+    {
+      "key": "osaka-verified-005-q2",
+      "spot_id": "osaka-verified-005",
+      "prompt": "「大阪ぐらし」の歌碑があるのは、法善寺のどの名所の前でしょう？",
+      "choices": [
+        "水掛不動",
+        "本堂の裏庭",
+        "山門の外",
+        "納骨堂"
+      ],
+      "answer_index": 0,
+      "sort_order": 2,
+      "source_url": "https://www.osaka-angenet.jp/files/upload/admin/ange/vol62.pdf",
+      "source_title": "大阪あんじゅ・大阪ぐらしの歌碑",
+      "evidence_level": "official_or_institutional"
+    },
+    {
+      "key": "osaka-verified-005-q3",
+      "spot_id": "osaka-verified-005",
+      "prompt": "「大阪ぐらし」を歌った歌手は誰でしょう？",
+      "choices": [
+        "フランク永井",
+        "村田英雄",
+        "東海林太郎",
+        "三橋美智也"
+      ],
+      "answer_index": 0,
+      "sort_order": 3,
+      "source_url": "https://www.osaka-angenet.jp/files/upload/admin/ange/vol62.pdf",
+      "source_title": "大阪あんじゅ・大阪ぐらしの歌碑",
+      "evidence_level": "official_or_institutional"
+    },
+    {
+      "key": "osaka-verified-006-q1",
+      "spot_id": "osaka-verified-006",
+      "prompt": "「野崎小唄」の舞台として親しまれている寺院の正式名称は何でしょう？",
+      "choices": [
+        "慈眼寺",
+        "四天王寺",
+        "葛井寺",
+        "観心寺"
+      ],
+      "answer_index": 0,
+      "sort_order": 1,
+      "source_url": "https://www.city.daito.lg.jp/site/miryoku/2751.html",
+      "source_title": "大東市公式・大東の見どころ案内",
+      "evidence_level": "official_or_institutional"
+    },
+    {
+      "key": "osaka-verified-006-q2",
+      "spot_id": "osaka-verified-006",
+      "prompt": "大東市公式によると、野崎まいりで知られる慈眼寺の通称は何でしょう？",
+      "choices": [
+        "野崎観音",
+        "野崎大師",
+        "野崎薬師",
+        "野崎地蔵"
+      ],
+      "answer_index": 0,
+      "sort_order": 2,
+      "source_url": "https://www.city.daito.lg.jp/site/miryoku/2751.html",
+      "source_title": "大東市公式・大東の見どころ案内",
+      "evidence_level": "official_or_institutional"
+    },
+    {
+      "key": "osaka-verified-006-q3",
+      "spot_id": "osaka-verified-006",
+      "prompt": "昭和9年発表の「野崎小唄」の作詞者は誰でしょう？",
+      "choices": [
+        "今中楓渓",
+        "西條八十",
+        "石濱恒夫",
+        "十二村哲"
+      ],
+      "answer_index": 0,
+      "sort_order": 3,
+      "source_url": "https://search.showakan.go.jp/search/record/detail.php?id=90003007",
+      "source_title": "昭和館デジタルアーカイブ・野崎小唄",
+      "evidence_level": "official_or_institutional"
+    },
+    {
+      "key": "osaka-verified-007-q1",
+      "spot_id": "osaka-verified-007",
+      "prompt": "「天満の子守歌」の歌碑がある公園はどこでしょう？",
+      "choices": [
+        "南天満公園",
+        "中之島公園",
+        "扇町公園",
+        "靱公園"
+      ],
+      "answer_index": 0,
+      "sort_order": 1,
+      "source_url": "https://www.city.osaka.lg.jp/kita/page/0000002346.html",
+      "source_title": "大阪市北区公式・名所旧跡",
+      "evidence_level": "official_or_institutional"
+    },
+    {
+      "key": "osaka-verified-007-q2",
+      "spot_id": "osaka-verified-007",
+      "prompt": "大阪市北区の説明によると、「天満の子守歌」が歌っている市場は何でしょう？",
+      "choices": [
+        "天満青物市場",
+        "堂島米市場",
+        "雑喉場魚市場",
+        "木津市場"
+      ],
+      "answer_index": 0,
+      "sort_order": 2,
+      "source_url": "https://www.city.osaka.lg.jp/kita/page/0000002346.html",
+      "source_title": "大阪市北区公式・名所旧跡",
+      "evidence_level": "official_or_institutional"
+    },
+    {
+      "key": "osaka-verified-007-q3",
+      "spot_id": "osaka-verified-007",
+      "prompt": "大阪市北区公式ページで歌碑の所在地として案内されているのはどの区でしょう？",
+      "choices": [
+        "北区",
+        "中央区",
+        "浪速区",
+        "西区"
+      ],
+      "answer_index": 0,
+      "sort_order": 3,
+      "source_url": "https://www.city.osaka.lg.jp/kita/page/0000002346.html",
+      "source_title": "大阪市北区公式・名所旧跡",
+      "evidence_level": "official_or_institutional"
+    },
+    {
+      "key": "osaka-verified-008-q1",
+      "spot_id": "osaka-verified-008",
+      "prompt": "南天満公園の淀川三十石船舟唄歌碑がある大阪市北区の町名はどこでしょう？",
+      "choices": [
+        "天満3丁目",
+        "中津2丁目",
+        "梅田1丁目",
+        "中之島1丁目"
+      ],
+      "answer_index": 0,
+      "sort_order": 1,
+      "source_url": "https://www.city.osaka.lg.jp/kita/page/0000002346.html",
+      "source_title": "大阪市北区公式・名所旧跡",
+      "evidence_level": "official_or_institutional"
+    },
+    {
+      "key": "osaka-verified-008-q2",
+      "spot_id": "osaka-verified-008",
+      "prompt": "江戸時代、三十石船の発着地として大阪側にあった船着場はどこでしょう？",
+      "choices": [
+        "八軒家船着場",
+        "川口船着場",
+        "安治川船着場",
+        "木津川船着場"
+      ],
+      "answer_index": 0,
+      "sort_order": 2,
+      "source_url": "https://www.city.osaka.lg.jp/kita/page/0000002346.html",
+      "source_title": "大阪市北区公式・名所旧跡",
+      "evidence_level": "official_or_institutional"
+    },
+    {
+      "key": "osaka-verified-008-q3",
+      "spot_id": "osaka-verified-008",
+      "prompt": "淀川三十石船は主にどの二つの都市を結んでいましたか？",
+      "choices": [
+        "京都と大坂",
+        "大坂と堺",
+        "京都と奈良",
+        "大坂と和歌山"
+      ],
+      "answer_index": 0,
+      "sort_order": 3,
+      "source_url": "https://www.city.takatsuki.osaka.jp/site/history/63578.html",
+      "source_title": "高槻市公式・淀川三十石船船唄",
+      "evidence_level": "official_or_institutional"
+    },
+    {
+      "key": "osaka-verified-009-q1",
+      "spot_id": "osaka-verified-009",
+      "prompt": "五月山公園の「鳩ぽっぽ」歌碑の作詞者は誰でしょう？",
+      "choices": [
+        "東くめ",
+        "武鹿悦子",
+        "与謝野晶子",
+        "金子みすゞ"
+      ],
+      "answer_index": 0,
+      "sort_order": 1,
+      "source_url": "https://www.city.ikeda.osaka.jp/material/files/group/29/h29_rekishibunkakihonkousou_2.pdf",
+      "source_title": "池田市公式・歴史文化基本構想資料",
+      "evidence_level": "official_or_institutional"
+    },
+    {
+      "key": "osaka-verified-009-q2",
+      "spot_id": "osaka-verified-009",
+      "prompt": "池田市公式資料によると、五月山公園の鳩ぽっぽ歌碑が建てられたのは何年でしょう？",
+      "choices": [
+        "昭和33年",
+        "昭和20年",
+        "昭和45年",
+        "平成元年"
+      ],
+      "answer_index": 0,
+      "sort_order": 2,
+      "source_url": "https://www.city.ikeda.osaka.jp/material/files/group/29/h29_rekishibunkakihonkousou_2.pdf",
+      "source_title": "池田市公式・歴史文化基本構想資料",
+      "evidence_level": "official_or_institutional"
+    },
+    {
+      "key": "osaka-verified-009-q3",
+      "spot_id": "osaka-verified-009",
+      "prompt": "「鳩ぽっぽ」の作曲者は誰でしょう？",
+      "choices": [
+        "滝廉太郎",
+        "山田耕筰",
+        "中田章",
+        "信時潔"
+      ],
+      "answer_index": 0,
+      "sort_order": 3,
+      "source_url": "https://wave.pref.wakayama.lg.jp/bunka-archive/senjin/higashi.html",
+      "source_title": "和歌山県文化情報アーカイブ・東くめ",
+      "evidence_level": "official_or_institutional"
+    }
+  ]
+}
