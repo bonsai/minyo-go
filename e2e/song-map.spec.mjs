@@ -14,6 +14,22 @@ test("Go WASM loads in the real browser and exposes distance calculation", async
   );
   expect(distance).toBeGreaterThan(0);
   expect(distance).toBeLessThan(10);
+  const apiChecks = await page.evaluate(() => ({
+    validCoordinates: window.MinyoGo.validCoordinates(34.7, 135.5),
+    invalidCoordinates: window.MinyoGo.validCoordinates(91, 135.5),
+    validAnswerIDs: window.MinyoGo.validateAnswerIDs([1, 2, 3], [3, 2, 1]),
+    duplicateAnswerIDs: window.MinyoGo.validateAnswerIDs([1, 2, 3], [1, 1, 3]),
+    passed: window.MinyoGo.passed(3, 3),
+    failed: window.MinyoGo.passed(2, 3),
+  }));
+  expect(apiChecks).toEqual({
+    validCoordinates: true,
+    invalidCoordinates: false,
+    validAnswerIDs: true,
+    duplicateAnswerIDs: false,
+    passed: true,
+    failed: false,
+  });
 });
 
 test("JavaScript fallback remains available when the WASM download fails", async ({ page }) => {
@@ -28,6 +44,11 @@ test("song map opens three questions and round-trips an answer attempt to the AP
   await page.goto("/?api=");
   await expect(page.locator("#apiStatus")).toContainText("API接続中");
   await expect(page.locator("[data-quiz]").first()).toBeVisible();
+  const spotID = await page.locator("[data-quiz]").first().getAttribute("data-quiz");
+  expect(spotID).toBeTruthy();
+  const quizResponse = await page.request.get(`/api/spots/${encodeURIComponent(spotID)}/quiz`);
+  expect(quizResponse.ok()).toBeTruthy();
+  expect(await quizResponse.text()).not.toContain("answer_index");
   await page.locator("[data-quiz]").first().click();
   await expect(page.locator("#quizDialog")).toBeVisible();
   await expect(page.locator("#quizQuestions .quiz-question")).toHaveCount(3);
