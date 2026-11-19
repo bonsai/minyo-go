@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>歌map — MINYO-GO スポットマップ</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+  :root{ --ink:#22242a; --muted:#6b7280; --line:#e2e4ea; --gold:#d7a94a; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; font-family:"Hiragino Kaku Gothic ProN","Noto Sans JP",system-ui,sans-serif; color:var(--ink); background:#faf8f3; }
+  header{ padding:18px 16px 8px; }
+  h1{ margin:0; font-size:26px; letter-spacing:.04em; }
+  h1 .go{ color:#b8860b; }
+  .sub{ color:var(--muted); margin:6px 0 0; font-size:14px; line-height:1.6; }
+  .note{ margin:10px 16px 0; background:#fff8e6; border:1px solid #ecd9a0; border-radius:10px; padding:10px 12px; font-size:13px; line-height:1.7; }
+  .controls{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin:14px 16px 0; }
+  button{ font:inherit; cursor:pointer; border:1px solid var(--line); background:#fff; border-radius:999px; padding:8px 14px; font-size:14px; }
+  button.primary{ background:#22242a; color:#fff; border-color:#22242a; }
+  button:disabled{ opacity:.45; cursor:not-allowed; }
+  button.get{ background:var(--gold); border-color:#b8860b; font-weight:700; }
+  button.get:disabled{ background:#e8e2d2; border-color:var(--line); font-weight:400; }
+  #geoStatus{ font-size:13px; color:var(--muted); }
+  .medal-count{ font-weight:700; font-size:16px; background:#fff; border:1px solid var(--line); border-radius:999px; padding:8px 14px; }
+  .toggle-wrap{ display:flex; align-items:center; gap:8px; background:#fff; border:1px solid var(--line); border-radius:999px; padding:6px 12px; font-size:14px; }
+  .switch{ position:relative; width:46px; height:26px; flex:none; }
+  .switch input{ opacity:0; width:0; height:0; }
+  .slider{ position:absolute; inset:0; background:#ccc; border-radius:999px; transition:.2s; }
+  .slider:before{ content:""; position:absolute; width:20px; height:20px; left:3px; top:3px; background:#fff; border-radius:50%; transition:.2s; }
+  .switch input:checked + .slider{ background:#c92a2a; }
+  .switch input:checked + .slider:before{ transform:translateX(20px); }
+  #testBadge{ display:none; background:#c92a2a; color:#fff; font-weight:700; border-radius:999px; padding:8px 14px; font-size:14px; }
+  body.test-mode #testBadge{ display:inline-block; }
+  body.test-mode{ background:#fdf1f1; }
+  #map{ height:58vh; min-height:340px; margin:14px 16px 0; border-radius:14px; border:1px solid var(--line); z-index:0; }
+  .legend{ display:flex; flex-wrap:wrap; gap:8px 14px; margin:10px 16px 0; font-size:13px; }
+  .legend span{ display:inline-flex; align-items:center; gap:6px; }
+  .dot{ width:14px; height:14px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 0 1px #999; display:inline-block; }
+  main{ padding:6px 16px 30px; max-width:860px; }
+  h2{ font-size:19px; margin:26px 0 10px; border-left:5px solid var(--gold); padding-left:9px; }
+  .card{ background:#fff; border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin:0 0 10px; }
+  .card h3{ margin:0 0 4px; font-size:16px; }
+  .song{ font-weight:700; }
+  .badge{ display:inline-block; color:#fff; font-size:12px; border-radius:999px; padding:2px 9px; margin-left:6px; vertical-align:1px; }
+  .meta{ color:var(--muted); font-size:13px; line-height:1.7; }
+  .evidence{ font-size:14px; line-height:1.7; margin:6px 0; }
+  .card .row{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:8px; }
+  .dist{ font-size:13px; color:#555; }
+  .unverified{ color:#b3541e; font-size:13px; font-weight:700; }
+  .got{ color:#2f9e44; font-weight:700; font-size:14px; }
+  form.add{ background:#fff; border:1px solid var(--line); border-radius:12px; padding:14px; display:grid; gap:10px; }
+  form.add label{ font-size:13px; font-weight:700; display:grid; gap:4px; }
+  form.add input, form.add select, form.add textarea{ font:inherit; font-weight:400; border:1px solid var(--line); border-radius:8px; padding:8px 10px; width:100%; }
+  form.add .two{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .small{ font-size:12px; color:var(--muted); line-height:1.6; }
+  .pop h3{ margin:0 0 2px; font-size:15px; }
+  .pop .evidence{ font-size:13px; }
+  #quizDialog{width:min(620px,calc(100% - 28px));max-height:85vh;border:1px solid var(--line);border-radius:14px;padding:18px;background:#fff;color:var(--ink)}
+  #quizDialog::backdrop{background:rgba(20,24,30,.55)}
+  #quizDialog h2{margin:0 0 8px}
+  .quiz-question{border:1px solid var(--line);border-radius:10px;padding:12px;margin:12px 0}
+  .quiz-question legend{font-weight:700;padding:0 5px}
+  .quiz-choice{display:flex;gap:8px;align-items:center;padding:7px 4px;font-size:14px}
+  #quizStatus{font-size:14px;line-height:1.6;white-space:pre-wrap}
+  #apiStatus{font-size:12px;color:var(--muted)}
+  footer{ padding:0 16px 34px; color:var(--muted); font-size:12px; line-height:1.7; max-width:860px; }
+  @media (max-width:560px){ #map{ height:52vh; } form.add .two{ grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>🎵 歌map <span class="go">— MINYO-GO</span></h1>
+  <p class="sub">歌のある場所を巡る地図。和歌・民謡・子守唄・童謡・演歌のゆかりの地 <span id="spotTotal"></span> 件。スポットの近く（30km圏内）に行くとメダルがGETできます。</p>
+</header>
+
+<div class="note">
+  📍 地図のピンは<strong>表示用の目安</strong>です（座標の出典は各スポットに記載。Wikipedia・公式ページで確認できたものだけを載せています）。<br>
+  ゲーム台帳 <code>spots-verified.json</code> の座標は、安全なチェックイン地点が現地確認できるまで <strong>null のまま</strong>です。座標が確認できなかったスポットはピンを打たず、一覧のみに載せています。
+</div>
+
+<div class="controls">
+  <button id="geoBtn" class="primary" type="button">📍 現在地を取得</button>
+  <span id="geoStatus">位置情報は未取得です</span>
+  <span class="medal-count">🏅 メダル <span id="medalCount">0/0</span></span>
+  <label class="toggle-wrap">テストモード
+    <span class="switch"><input type="checkbox" id="testToggle"><span class="slider"></span></span>
+  </label>
+  <span id="testBadge">⚠ テストモード中：距離制限なし</span>
+  <span id="apiStatus"></span>
+</div>
+
+<div id="map"></div>
+<div class="legend" id="legend"></div>
+
+<main>
+  <h2>スポット一覧</h2>
+  <div id="list"></div>
+
+  <h2>スポット追加</h2>
+  <p class="small">歌とのつながりが確認できた場所を足せます。追加分はこのブラウザ（localStorage）に保存され、地図・一覧・メダル対象に即反映されます。緯度・経度は空でも登録できます（その場合は座標未確認として一覧のみ表示）。</p>
+  <form class="add" id="addForm">
+    <div class="two">
+      <label>場所名<input name="name" required placeholder="例：○○公園・○○歌碑"></label>
+      <label>歌のタイトル<input name="song_title" required placeholder="例：○○小唄"></label>
+    </div>
+    <div class="two">
+      <label>都道府県<input name="prefecture" required placeholder="例：大阪府"></label>
+      <label>自治体<input name="municipality" required placeholder="例：大阪市北区"></label>
+    </div>
+    <div class="two">
+      <label>種別
+        <select name="song_type" required>
+          <option value="waka">和歌</option>
+          <option value="folk_song">民謡</option>
+          <option value="lullaby">子守唄</option>
+          <option value="children_song">童謡</option>
+          <option value="enka">演歌</option>
+        </select>
+      </label>
+      <label>場所の表記（location_text）<input name="location_text" placeholder="例：大阪府大阪市北区○○1丁目・○○公園"></label>
+    </div>
+    <label>歌とのつながり（evidence_summary）<textarea name="evidence_summary" rows="3" required placeholder="どの歌と、どう結びついているかを書く"></textarea></label>
+    <label>出典URL<input name="source_url" type="url" placeholder="https://"></label>
+    <div class="two">
+      <label>緯度（任意）<input name="lat" type="number" step="any" min="-90" max="90" placeholder="空なら座標未確認"></label>
+      <label>経度（任意）<input name="lon" type="number" step="any" min="-180" max="180" placeholder="空なら座標未確認"></label>
+    </div>
+    <div><button type="submit" class="primary">＋ スポットを追加</button></div>
+  </form>
+
+  <h2>追加分の書き出し</h2>
+  <p class="small">追加したスポットを、台帳 <code>spots-verified.json</code> と同じ形式の JSON で書き出せます。書き出した JSON を repo の台帳へマージして push すると、みんなの歌mapにも反映されます（運用は README 参照）。</p>
+  <div class="row" style="display:flex;gap:8px;flex-wrap:wrap;">
+    <button id="dlBtn" type="button">⬇ JSONをダウンロード</button>
+    <button id="cpBtn" type="button">📋 クリップボードにコピー</button>
+    <span id="exportStatus" class="small"></span>
+  </div>
+</main>
+
+<dialog id="quizDialog">
+  <h2 id="quizTitle">スポットクイズ</h2>
+  <p id="quizStatus">クイズを読み込みます。</p>
+  <form id="quizForm">
+    <div id="quizQuestions"></div>
+    <div class="row">
+      <button type="submit" class="primary" id="quizSubmit">回答する</button>
+      <button type="button" id="quizClose">閉じる</button>
+    </div>
+  </form>
+</dialog>
+
+<footer>
+  データ：<code>minyo-go/spots-verified.json</code>（歌とのつながりを確認できた場所のみ）。ピンの座標は表示用で、出典は Wikipedia の座標表記・公式ページの記載によります。<br>
+  メダルと追加スポットはこのブラウザの localStorage に保存されます。通常モードのメダルGETは現在地から30km圏内のみ。テストモードでは距離制限なしで取得できます。
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+"use strict";
+const BASE_SPOTS = [
+ {
+  "id": "osaka-verified-001",
+  "prefecture": "大阪府",
+  "municipality": "高槻市",
+  "name": "高槻市大塚地区",
+  "song_title": "淀川三十石船船唄",
+  "song_type": "folk_song",
+  "relation_type": "transmission_area",
+  "evidence_summary": "江戸時代の淀川三十石船の船頭が唄った船唄。高槻市大塚地区の人々による保存会が歌い継ぎ、大阪府指定無形民俗文化財として保存・普及活動を行っている。",
+  "location_text": "大阪府高槻市大塚地区（保存会の活動地域。正確な公開チェックイン地点は未確定）",
+  "source_url": "https://www.city.takatsuki.osaka.jp/site/history/63578.html",
+  "evidence_level": "official_documented",
+  "lat": null,
+  "lon": null,
+  "coord_source": null
+ },
+ {
+  "id": "nara-verified-001",
+  "prefecture": "奈良県",
+  "municipality": "三郷町",
+  "name": "三室山遊歩道万葉歌碑",
+  "song_title": "龍田山 見つつ越え来し 桜花",
+  "song_type": "waka",
+  "relation_type": "song_monument",
+  "evidence_summary": "大伴家持の万葉集巻20・4395番歌の歌碑。三室山遊歩道入口付近に建立され、三郷町公式ページが歌と建立場所を説明している。",
+  "location_text": "奈良県生駒郡三郷町・三室山遊歩道",
+  "source_url": "https://www.town.sango.nara.jp/soshiki/19/1693.html",
+  "evidence_level": "official_documented",
+  "lat": 34.58944,
+  "lon": 135.67722,
+  "coord_source": "Wikipedia「三室山 (三郷町)」"
+ },
+ {
+  "id": "nara-verified-002",
+  "prefecture": "奈良県",
+  "municipality": "三郷町",
+  "name": "三郷町立図書館・きらきらぼし歌碑",
+  "song_title": "きらきらぼし",
+  "song_type": "children_song",
+  "relation_type": "song_monument",
+  "evidence_summary": "作詩者・武鹿悦子の直筆による「きらきらぼし」歌碑が、三郷町立図書館の駅前正面玄関右側に建立されている。",
+  "location_text": "奈良県生駒郡三郷町勢野西1丁目4-4（三郷町立図書館）",
+  "source_url": "https://www.lib.sango.nara.jp/bunko.html",
+  "evidence_level": "official_documented",
+  "lat": null,
+  "lon": null,
+  "coord_source": null
+ },
+ {
+  "id": "wakayama-verified-001",
+  "prefecture": "和歌山県",
+  "municipality": "新宮市",
+  "name": "JR新宮駅前・はとぽっぽ歌碑",
+  "song_title": "はとぽっぽ",
+  "song_type": "children_song",
+  "relation_type": "song_monument_and_lyricist_birthplace",
+  "evidence_summary": "新宮市出身の東くめが作詞した童謡「鳩ぽっぽ」の歌碑がJR新宮駅前に設置されている。和歌山県公式ページが東くめの新宮出身と歌碑を紹介している。",
+  "location_text": "和歌山県新宮市徐福2丁目・JR新宮駅前",
+  "source_url": "https://www.pref.wakayama.lg.jp/prefg/081300/d00214672.html",
+  "evidence_level": "official_documented",
+  "lat": 33.7252111,
+  "lon": 135.9941583,
+  "coord_source": "Wikipedia「新宮駅」"
+ },
+ {
+  "id": "wakayama-verified-002",
+  "prefecture": "和歌山県",
+  "municipality": "和歌山市",
+  "name": "玉津島神社・万葉歌碑",
+  "song_title": "万葉集 巻6-917・918・919、巻7-1222",
+  "song_type": "waka",
+  "relation_type": "song_monument_and_poem_landscape",
+  "evidence_summary": "和歌山市公式の和歌の浦万葉歌碑案内に、玉津島神社境内の歌碑と万葉集の歌番号が掲載されている。",
+  "location_text": "和歌山県和歌山市和歌浦中3丁目・玉津島神社",
+  "source_url": "https://www.city.wakayama.wakayama.jp/kankou/kankouspot/1066933/index.html",
+  "evidence_level": "official_documented",
+  "lat": 34.187944,
+  "lon": 135.171861,
+  "coord_source": "Wikipedia「玉津島神社」"
+ },
+ {
+  "id": "wakayama-verified-003",
+  "prefecture": "和歌山県",
+  "municipality": "和歌山市",
+  "name": "片男波公園・万葉の小路",
+  "song_title": "万葉集 巻12-3168、巻7-1215・1217・1213、巻12-3175、巻7-1219",
+  "song_type": "waka",
+  "relation_type": "song_monument_cluster",
+  "evidence_summary": "和歌山市公式の和歌の浦万葉歌碑案内に、片男波公園・万葉の小路に設置された複数の歌碑と万葉集の歌番号が掲載されている。",
+  "location_text": "和歌山県和歌山市和歌浦南3丁目・片男波公園",
+  "source_url": "https://www.city.wakayama.wakayama.jp/kankou/kankouspot/1066933/index.html",
+  "evidence_level": "official_documented",
+  "lat": 34.1817017,
+  "lon": 135.1734531,
+  "coord_source": "和歌祭公式サイト（万葉館・片男波公園）"
+ },
+ {
+  "id": "nara-verified-003",
+  "prefecture": "奈良県",
+  "municipality": "三郷町",
+  "name": "近鉄信貴山下駅前・山上憶良歌碑",
+  "song_title": "山上憶良の万葉歌",
+  "song_type": "waka",
+  "relation_type": "song_monument",
+  "evidence_summary": "万葉集の歌を刻んだ歌碑が信貴山下駅前にある。日本遺産認定記念の建立で、龍田山と三郷町の歴史的なつながりを示す。",
+  "location_text": "奈良県生駒郡三郷町・近鉄信貴山下駅前",
+  "source_url": "https://www.japan-heritage.bunka.go.jp/ja/news/1726/",
+  "evidence_level": "official_documented",
+  "lat": 34.601028,
+  "lon": 135.6950306,
+  "coord_source": "Wikipedia「信貴山下駅」"
+ },
+ {
+  "id": "wakayama-verified-004",
+  "prefecture": "和歌山県",
+  "municipality": "岩出市",
+  "name": "根来寺・根来の子守唄歌碑",
+  "song_title": "根来の子守唄",
+  "song_type": "lullaby",
+  "relation_type": "song_monument_and_transmission_area",
+  "evidence_summary": "地域で受け継がれてきた子守唄。保存会があり、根来寺に歌碑が建てられ、歌碑の前で歌を聴ける仕組みも設置された。",
+  "location_text": "和歌山県岩出市根来・根来寺",
+  "source_url": "https://www.nwn.jp/news/20161001negorobokomoriuta/",
+  "evidence_level": "news_documented",
+  "lat": 34.28722,
+  "lon": 135.31667,
+  "coord_source": "Wikipedia「根来寺」"
+ },
+ {
+  "id": "osaka-verified-002",
+  "prefecture": "大阪府",
+  "municipality": "吹田市",
+  "name": "千里南公園・千里石ぶみの丘",
+  "song_title": "万葉歌碑群・与謝野晶子歌碑",
+  "song_type": "waka",
+  "relation_type": "song_monument_cluster",
+  "evidence_summary": "万葉歌碑、芭蕉句碑、与謝野晶子歌碑などが集まる文学散歩スポット。吹田市公式が案内している。",
+  "location_text": "大阪府吹田市佐竹台1丁目・千里南公園",
+  "source_url": "https://www.city.suita.osaka.jp/sangyo/1018152/1018167/1018168/1028864/1018169/1009790.html",
+  "evidence_level": "official_documented",
+  "lat": null,
+  "lon": null,
+  "coord_source": null
+ },
+ {
+  "id": "osaka-verified-003",
+  "prefecture": "大阪府",
+  "municipality": "大阪市浪速区",
+  "name": "難波八阪神社・海ゆかば歌碑",
+  "song_title": "海ゆかば（大伴家持の万葉歌に基づく）",
+  "song_type": "waka",
+  "relation_type": "song_monument",
+  "evidence_summary": "境内に「海ゆかば」の歌碑がある。原歌は大伴家持の万葉歌で、和歌が歌になった例。",
+  "location_text": "大阪府大阪市浪速区元町2丁目・難波八阪神社",
+  "source_url": "https://monument.sakura.ne.jp/27oosakafu.html",
+  "evidence_level": "secondary_documented",
+  "lat": 34.661222,
+  "lon": 135.496694,
+  "coord_source": "Wikipedia「難波八阪神社」"
+ },
+ {
+  "id": "osaka-verified-004",
+  "prefecture": "大阪府",
+  "municipality": "大阪市浪速区",
+  "name": "通天閣・王将歌碑",
+  "song_title": "王将（村田英雄）",
+  "song_type": "enka",
+  "relation_type": "song_monument",
+  "evidence_summary": "村田英雄「王将」の歌碑が通天閣そばに紹介されている。",
+  "location_text": "大阪府大阪市浪速区恵美須東1丁目・通天閣",
+  "source_url": "https://monument.sakura.ne.jp/27oosakafu.html",
+  "evidence_level": "secondary_documented",
+  "lat": 34.6525361,
+  "lon": 135.506325,
+  "coord_source": "Wikipedia「通天閣」"
+ },
+ {
+  "id": "osaka-verified-005",
+  "prefecture": "大阪府",
+  "municipality": "大阪市中央区",
+  "name": "法善寺・水掛不動",
+  "song_title": "月の法善寺横町／大阪ぐらし",
+  "song_type": "enka",
+  "relation_type": "song_monument",
+  "evidence_summary": "「月の法善寺横町」「大阪ぐらし」にゆかりの歌碑候補として紹介されている地点。",
+  "location_text": "大阪府大阪市中央区難波1丁目・法善寺",
+  "source_url": "https://monument.sakura.ne.jp/27oosakafu.html",
+  "evidence_level": "secondary_documented",
+  "lat": 34.667861,
+  "lon": 135.502639,
+  "coord_source": "Wikipedia「法善寺」"
+ },
+ {
+  "id": "osaka-verified-006",
+  "prefecture": "大阪府",
+  "municipality": "大東市",
+  "name": "野崎観音・慈眼寺",
+  "song_title": "野崎小唄",
+  "song_type": "folk_song",
+  "relation_type": "song_monument",
+  "evidence_summary": "「野崎小唄」の歌碑がある。節談説教・野崎詣りで知られる慈眼寺が舞台。",
+  "location_text": "大阪府大東市野崎2丁目・慈眼寺（野崎観音）",
+  "source_url": "https://monument.sakura.ne.jp/27oosakafu.html",
+  "evidence_level": "secondary_documented",
+  "lat": 34.7191972,
+  "lon": 135.644675,
+  "coord_source": "Wikipedia「慈眼寺 (大東市)」"
+ },
+ {
+  "id": "osaka-verified-007",
+  "prefecture": "大阪府",
+  "municipality": "大阪市北区",
+  "name": "南天満公園・天満の子守歌歌碑",
+  "song_title": "天満の子守歌",
+  "song_type": "lullaby",
+  "relation_type": "song_monument",
+  "evidence_summary": "南天満公園に「天満の子守歌」の歌碑候補として紹介されている地点。",
+  "location_text": "大阪府大阪市北区天満2〜3丁目・南天満公園",
+  "source_url": "https://monument.sakura.ne.jp/27oosakafu.html",
+  "evidence_level": "secondary_documented",
+  "lat": 34.691879,
+  "lon": 135.514528,
+  "coord_source": "Wikipedia「南天満公園」"
+ },
+ {
+  "id": "osaka-verified-008",
+  "prefecture": "大阪府",
+  "municipality": "大阪市北区",
+  "name": "南天満公園・淀川三十石船船唄歌碑",
+  "song_title": "淀川三十石船船唄",
+  "song_type": "folk_song",
+  "relation_type": "song_monument",
+  "evidence_summary": "osaka-verified-001（高槻市大塚地区＝伝承地）と同じ歌の歌碑側の地点。伝承地と歌碑のペアとして登録する。",
+  "location_text": "大阪府大阪市北区天満2〜3丁目・南天満公園",
+  "source_url": "https://monument.sakura.ne.jp/27oosakafu.html",
+  "evidence_level": "secondary_documented",
+  "lat": 34.691879,
+  "lon": 135.514528,
+  "coord_source": "Wikipedia「南天満公園」"
+ },
+ {
+  "id": "osaka-verified-009",
+  "prefecture": "大阪府",
+  "municipality": "池田市",
+  "name": "五月山公園・鳩ぽっぽ歌碑",
+  "song_title": "鳩ぽっぽ（東くめ作詞）",
+  "song_type": "children_song",
+  "relation_type": "song_monument",
+  "evidence_summary": "童謡「鳩ぽっぽ」の歌碑候補として紹介されている地点。wakayama-verified-001（JR新宮駅前）と同じ歌の別の歌碑。",
+  "location_text": "大阪府池田市綾羽2丁目・五月山公園",
+  "source_url": "https://monument.sakura.ne.jp/27oosakafu.html",
+  "evidence_level": "secondary_documented",
+  "lat": 34.8303861,
+  "lon": 135.4260333,
+  "coord_source": "Wikipedia「五月山公園」"
+ }
+];
+const TYPES = {
+  waka:          { label: "和歌",   color: "#7b5ea7" },
+  folk_song:     { label: "民謡",   color: "#2f9e44" },
+  lullaby:       { label: "子守唄", color: "#e64980" },
+  children_song: { label: "童謡",   color: "#f08c00" },
+  enka:          { label: "演歌",   color: "#c92a2a" }
+};
+const GET_RADIUS_KM = 30;
+const LS_MEDALS = "utamap.medals.v1";
+const LS_CUSTOM = "utamap.customSpots.v1";
+const LS_TEST   = "utamap.testMode.v1";
+
+const load = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch(e){ return d; } };
+const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+
+let medals  = new Set(load(LS_MEDALS, []));
+let custom  = load(LS_CUSTOM, []);
+let testMode = !!load(LS_TEST, false);
+let userPos = null;         // {lat, lon}
+let userMarker = null;
+const markers = {};         // id -> L.circleMarker
+
+const allSpots = () => BASE_SPOTS.concat(custom);
+const $ = id => document.getElementById(id);
+const API_PARAM = new URLSearchParams(location.search).get("api");
+const API_ENABLED = API_PARAM !== null;
+const API_BASE = API_PARAM || "";
+const API_USER_KEY = "minyo-go.apiUserId.v1";
+let apiUserId = localStorage.getItem(API_USER_KEY);
+if (!apiUserId) {
+  apiUserId = "web-" + (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2));
+  localStorage.setItem(API_USER_KEY, apiUserId);
+}
+let apiStamps = new Set();
+let activeQuizSpot = null;
+let activeQuizQuestions = [];
+const apiURL = path => API_BASE.replace(/\/$/, "") + path;
+
+const map = L.map("map");
+L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  maxZoom: 19, attribution: "&copy; OpenStreetMap contributors"
+}).addTo(map);
+map.setView([34.62, 135.55], 8);
+
+$("legend").innerHTML = Object.values(TYPES).map(t =>
+  `<span><i class="dot" style="background:${t.color}"></i>${t.label}</span>`).join("")
+  + `<span><i class="dot" style="background:#888"></i>座標未確認（一覧のみ）</span>`;
+
+function haversineKm(a, b){
+  const R = 6371, rad = Math.PI/180;
+  const dLat = (b.lat-a.lat)*rad, dLon = (b.lon-a.lon)*rad;
+  const h = Math.sin(dLat/2)**2 + Math.cos(a.lat*rad)*Math.cos(b.lat*rad)*Math.sin(dLon/2)**2;
+  return 2*R*Math.asin(Math.sqrt(h));
+}
+function distOf(s){
+  if (!userPos || s.lat == null) return null;
+  return haversineKm(userPos, s);
+}
+function fmtDist(km){
+  if (km == null) return "";
+  return km < 1 ? `現在地から約 ${Math.round(km*1000)} m` : `現在地から約 ${km.toFixed(1)} km`;
+}
+function canGet(s){
+  if (medals.has(s.id)) return false;
+  if (testMode) return true;
+  const d = distOf(s);
+  return d != null && d <= GET_RADIUS_KM;
+}
+function getHint(s){
+  if (medals.has(s.id)) return "";
+  if (testMode) return "";
+  if (s.lat == null) return "座標未確認のため通常モードではGETできません";
+  if (!userPos) return "位置情報を取得するとGETできます";
+  const d = distOf(s);
+  if (d != null && d > GET_RADIUS_KM) return `30km圏外です（あと約 ${(d-GET_RADIUS_KM).toFixed(1)} km）`;
+  return "";
+}
+function esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+function getButtonHTML(s){
+  if (API_ENABLED) {
+    if (s.custom) return `<span class="dist">追加スポットは台帳登録後にクイズ可能</span>`;
+    if (apiStamps.has(s.id)) return `<span class="got">🏅 取得済み</span>`;
+    return `<button type="button" class="get" data-quiz="${esc(s.id)}">🎓 3問クイズに挑戦</button>`;
+  }
+  if (medals.has(s.id)) return `<span class="got">🏅 取得済み</span>`;
+  const hint = getHint(s);
+  return `<button type="button" class="get" data-get="${esc(s.id)}" ${canGet(s) ? "" : "disabled"}>🏅 メダルGET</button>`
+       + (hint ? ` <span class="dist">${esc(hint)}</span>` : "");
+}
+function popupHTML(s){
+  const t = TYPES[s.song_type] || { label: s.song_type, color: "#888" };
+  const d = distOf(s);
+  return `<div class="pop"><h3>${esc(s.name)}<span class="badge" style="background:${t.color}">${t.label}</span></h3>`
+    + `<div>🎵 <span class="song">${esc(s.song_title)}</span></div>`
+    + `<p class="evidence">${esc(s.evidence_summary)}</p>`
+    + `<div class="meta">📍 ${esc(s.location_text || "")}<br>`
+    + (s.coord_source ? `座標出典：${esc(s.coord_source)}<br>` : "")
+    + (d != null ? `${esc(fmtDist(d))}<br>` : "")
+    + (s.source_url ? `出典：<a href="${esc(s.source_url)}" target="_blank" rel="noopener">${esc(s.source_url)}</a>` : "")
+    + `</div><div class="row" style="margin-top:8px;">${getButtonHTML(s)}</div></div>`;
+}
+function cardHTML(s){
+  const t = TYPES[s.song_type] || { label: s.song_type, color: "#888" };
+  const d = distOf(s);
+  const unpinned = s.lat == null;
+  return `<article class="card" id="card-${esc(s.id)}">
+    <h3>${esc(s.name)}<span class="badge" style="background:${t.color}">${t.label}</span>${s.custom ? '<span class="badge" style="background:#868e96">追加分</span>' : ""}</h3>
+    <div>🎵 <span class="song">${esc(s.song_title)}</span></div>
+    <p class="evidence">${esc(s.evidence_summary)}</p>
+    <div class="meta">📍 ${esc(s.location_text || "")}${s.coord_source ? `<br>座標出典：${esc(s.coord_source)}` : ""}${s.source_url ? `<br>出典：<a href="${esc(s.source_url)}" target="_blank" rel="noopener">${esc(s.source_url)}</a>` : ""}</div>
+    <div class="row">
+      ${unpinned ? '<span class="unverified">座標未確認（ピンはありません）</span>' : (d != null ? `<span class="dist">${esc(fmtDist(d))}</span>` : '<span class="dist">位置情報を取得すると距離が出ます</span>')}
+      ${getButtonHTML(s)}
+      ${s.custom ? `<button type="button" data-del="${esc(s.id)}">🗑 追加分を削除</button>` : ""}
+    </div></article>`;
+}
+
+function render(){
+  document.body.classList.toggle("test-mode", testMode);
+  $("testToggle").checked = testMode;
+  const spots = allSpots();
+  $("spotTotal").textContent = spots.length;
+  const owned = API_ENABLED ? apiStamps : medals;
+  $("medalCount").textContent = `${owned.size}/${spots.length}`;
+
+  // markers
+  for (const id in markers){ map.removeLayer(markers[id]); delete markers[id]; }
+  const pts = [];
+  for (const s of spots){
+    if (s.lat == null) continue;
+    const t = TYPES[s.song_type] || { color: "#888" };
+    const m = L.circleMarker([s.lat, s.lon], {
+      radius: 10, color: "#fff", weight: 2,
+      fillColor: owned.has(s.id) ? "#d7a94a" : t.color, fillOpacity: 0.95
+    }).addTo(map).bindPopup(popupHTML(s));
+    m.on("popupopen", () => m.setPopupContent(popupHTML(s)));
+    markers[s.id] = m; pts.push([s.lat, s.lon]);
+  }
+  if (pts.length && !render._fitted){ map.fitBounds(pts, { padding: [24, 24] }); render._fitted = true; }
+  if (userMarker){ map.removeLayer(userMarker); userMarker = null; }
+  if (userPos){
+    userMarker = L.circleMarker([userPos.lat, userPos.lon], { radius: 8, color: "#1971c2", weight: 3, fillColor: "#74c0fc", fillOpacity: 0.9 })
+      .addTo(map).bindPopup("現在地");
+  }
+
+  // list grouped by prefecture (base order first)
+  const order = ["大阪府", "奈良県", "和歌山県"];
+  const groups = new Map();
+  for (const s of spots){
+    if (!groups.has(s.prefecture)) groups.set(s.prefecture, []);
+    groups.get(s.prefecture).push(s);
+  }
+  const keys = [...groups.keys()].sort((a, b) => {
+    const ia = order.indexOf(a), ib = order.indexOf(b);
+    return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+  });
+  $("list").innerHTML = keys.map(p =>
+    `<h2>${esc(p)}（${groups.get(p).length}件）</h2>` + groups.get(p).map(cardHTML).join("")
+  ).join("");
+}
+
+// medal GET + custom delete (event delegation for list & popups)
+document.addEventListener("click", e => {
+  const quiz = e.target.closest("[data-quiz]");
+  if (quiz) { openQuiz(quiz.getAttribute("data-quiz")); return; }
+  const g = e.target.closest("[data-get]");
+  if (g && !g.disabled){
+    const s = allSpots().find(x => x.id === g.getAttribute("data-get"));
+    if (s && canGet(s)){
+      medals.add(s.id); save(LS_MEDALS, [...medals]); render();
+    }
+    return;
+  }
+  const d = e.target.closest("[data-del]");
+  if (d){
+    const id = d.getAttribute("data-del");
+    if (confirm("この追加スポットを削除しますか？")){
+      custom = custom.filter(x => x.id !== id);
+      medals.delete(id); save(LS_MEDALS, [...medals]);
+      save(LS_CUSTOM, custom); render();
+    }
+  }
+});
+
+// test mode toggle
+$("testToggle").addEventListener("change", e => {
+  testMode = e.target.checked; save(LS_TEST, testMode); render();
+});
+
+// geolocation
+$("geoBtn").addEventListener("click", () => {
+  const st = $("geoStatus");
+  if (!navigator.geolocation){ st.textContent = "このブラウザでは位置情報が使えません。GETはテストモードでのみ可能です。"; return; }
+  st.textContent = "位置情報を取得中…";
+  navigator.geolocation.watchPosition(
+    pos => {
+      userPos = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+      st.textContent = `位置情報を取得しました（精度 約 ${Math.round(pos.coords.accuracy)} m）。30km圏内のスポットでGETできます。`;
+      render();
+    },
+    err => { st.textContent = "位置情報を取得できませんでした（許可が必要です）。GETはテストモードでのみ可能です。"; },
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 }
+  );
+});
+
+// add-spot form
+$("addForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const f = new FormData(e.target);
+  const latRaw = (f.get("lat") || "").toString().trim();
+  const lonRaw = (f.get("lon") || "").toString().trim();
+  const hasCoord = latRaw !== "" && lonRaw !== "";
+  const s = {
+    id: "custom-" + Date.now().toString(36),
+    prefecture: f.get("prefecture").toString().trim(),
+    municipality: f.get("municipality").toString().trim(),
+    name: f.get("name").toString().trim(),
+    song_title: f.get("song_title").toString().trim(),
+    song_type: f.get("song_type").toString(),
+    relation_type: "user_added",
+    evidence_summary: f.get("evidence_summary").toString().trim(),
+    location_text: (f.get("location_text") || "").toString().trim(),
+    source_url: (f.get("source_url") || "").toString().trim(),
+    evidence_level: "user_added",
+    lat: hasCoord ? parseFloat(latRaw) : null,
+    lon: hasCoord ? parseFloat(lonRaw) : null,
+    coord_source: hasCoord ? "追加時に入力された座標（未検証）" : null,
+    custom: true
+  };
+  if (hasCoord && (isNaN(s.lat) || isNaN(s.lon))){ alert("緯度・経度は数値で入れてください"); return; }
+  custom.push(s); save(LS_CUSTOM, custom);
+  e.target.reset(); render._fitted = false; render();
+  document.getElementById("card-" + s.id)?.scrollIntoView({ behavior: "smooth", block: "center" });
+});
+
+// export custom spots as spots-verified.json-shaped JSON
+function exportJSON(){
+  const records = custom.map(s => ({
+    id: s.id, prefecture: s.prefecture, municipality: s.municipality, name: s.name,
+    song_title: s.song_title, song_type: s.song_type, relation_type: s.relation_type,
+    evidence_summary: s.evidence_summary, location_text: s.location_text,
+    lat: s.lat, lon: s.lon, source_url: s.source_url, source_type: "user_added",
+    evidence_level: s.evidence_level, status: "user_added"
+  }));
+  return JSON.stringify({
+    schema_version: "1.0.0", dataset: "minyo-go-spots-user-added",
+    note: "歌mapの「スポット追加」から書き出した追加分。台帳 spots-verified.json の records へマージして使う。",
+    records
+  }, null, 2);
+}
+$("dlBtn").addEventListener("click", () => {
+  if (!custom.length){ $("exportStatus").textContent = "追加分がまだありません。"; return; }
+  const blob = new Blob([exportJSON()], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = "minyo-go-user-spots.json"; a.click();
+  URL.revokeObjectURL(a.href);
+  $("exportStatus").textContent = `追加分 ${custom.length} 件を書き出しました。`;
+});
+$("cpBtn").addEventListener("click", async () => {
+  if (!custom.length){ $("exportStatus").textContent = "追加分がまだありません。"; return; }
+  try { await navigator.clipboard.writeText(exportJSON()); $("exportStatus").textContent = `追加分 ${custom.length} 件をコピーしました。`; }
+  catch(e){ $("exportStatus").textContent = "コピーできませんでした。ダウンロードを使ってください。"; }
+});
+
+
+async function refreshApiProgress(){
+  if (!API_ENABLED) return;
+  try {
+    const response = await fetch(apiURL(`/api/users/${encodeURIComponent(apiUserId)}/progress`));
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || `API error (${response.status})`);
+    apiStamps = new Set((data.spots || []).filter(item => item.collected).map(item => item.spot_id));
+    $("apiStatus").textContent = `API接続中：${data.collected_spots}/${data.total_spots} スタンプ`;
+    render();
+  } catch (error) {
+    $("apiStatus").textContent = `API未接続：${error.message}`;
+  }
+}
+
+async function openQuiz(spotID){
+  const spot = allSpots().find(item => item.id === spotID);
+  if (!spot) return;
+  activeQuizSpot = spotID;
+  activeQuizQuestions = [];
+  $("quizTitle").textContent = `${spot.name} — 3問クイズ`;
+  $("quizStatus").textContent = "クイズを読み込み中…";
+  $("quizQuestions").innerHTML = "";
+  $("quizSubmit").disabled = true;
+  $("quizDialog").showModal();
+  try {
+    const response = await fetch(apiURL(`/api/spots/${encodeURIComponent(spotID)}/quiz`));
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || `API error (${response.status})`);
+    activeQuizQuestions = data.questions || [];
+    $("quizQuestions").innerHTML = activeQuizQuestions.map((question, index) =>
+      `<fieldset class="quiz-question"><legend>${index + 1}. ${esc(question.prompt)}</legend>` +
+      question.choices.map((choice, choiceIndex) =>
+        `<label class="quiz-choice"><input type="radio" name="q-${question.id}" value="${choiceIndex}" required> ${esc(choice)}</label>`
+      ).join("") + `</fieldset>`
+    ).join("");
+    $("quizStatus").textContent = "3問すべてに回答してください。全問正解でスタンプを獲得できます。";
+    $("quizSubmit").disabled = activeQuizQuestions.length !== 3;
+  } catch (error) {
+    $("quizStatus").textContent = error.message;
+  }
+}
+
+$("quizClose").addEventListener("click", () => $("quizDialog").close());
+$("quizForm").addEventListener("submit", async event => {
+  event.preventDefault();
+  if (!API_ENABLED || !activeQuizSpot || activeQuizQuestions.length !== 3) return;
+  const answers = activeQuizQuestions.map(question => {
+    const selected = document.querySelector(`input[name="q-${question.id}"]:checked`);
+    return selected ? {question_id: question.id, answer_index: Number(selected.value)} : null;
+  });
+  if (answers.some(answer => answer === null)) {
+    $("quizStatus").textContent = "3問すべてに回答してください。";
+    return;
+  }
+  const payload = {user_id: apiUserId, spot_id: activeQuizSpot, answers, test_mode: testMode};
+  if (!testMode) {
+    if (!userPos) {
+      $("quizStatus").textContent = "通常モードでは現在地が必要です。「現在地を取得」を先に押してください。";
+      return;
+    }
+    payload.latitude = userPos.lat;
+    payload.longitude = userPos.lon;
+  }
+  $("quizSubmit").disabled = true;
+  $("quizStatus").textContent = "回答を確認中…";
+  try {
+    const response = await fetch(apiURL("/api/attempts"), {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(payload)
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || `API error (${response.status})`);
+    if (result.stamp_awarded) $("quizStatus").textContent = "🎉 全問正解！スタンプを獲得しました。";
+    else if (result.stamp_already_owned) $("quizStatus").textContent = "全問正解！このスポットのスタンプは取得済みです。";
+    else $("quizStatus").textContent = `${result.correct_count}/3問正解。スタンプはまだありません。もう一度挑戦できます。`;
+    await refreshApiProgress();
+  } catch (error) {
+    $("quizStatus").textContent = error.message;
+  } finally {
+    $("quizSubmit").disabled = false;
+  }
+});
+
+if (API_ENABLED) {
+  $("apiStatus").textContent = "API接続を確認中…";
+  refreshApiProgress();
+}
+
+render();
+</script>
+</body>
+</html>
