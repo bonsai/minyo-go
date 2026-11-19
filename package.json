@@ -11,7 +11,8 @@
     "db:remote": "wrangler d1 migrations apply minyo-go --remote",
     "seed:local": "node scripts/seed-d1.mjs",
     "seed:remote": "node scripts/seed-d1.mjs --remote",
-    "build": "wrangler deploy --dry-run"
+    "build": "wrangler deploy --dry-run",
+    "db:create": "wrangler d1 create minyo-go"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20261118.1",
