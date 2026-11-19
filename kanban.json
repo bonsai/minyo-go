@@ -183,6 +183,76 @@
         "performance"
       ],
       "url": "https://github.com/bonsai/minyo-go/issues/9"
+    },
+    {
+      "id": "issue-10",
+      "issue": 10,
+      "title": "DATA: 16スポット×3問の出典確認済みクイズ原稿48問を作成・登録する",
+      "status": "backlog",
+      "priority": "P0",
+      "depends_on": [
+        "issue-3",
+        "issue-5"
+      ],
+      "labels": [
+        "data",
+        "quiz",
+        "content"
+      ],
+      "url": "https://github.com/bonsai/minyo-go/issues/10"
+    },
+    {
+      "id": "issue-11",
+      "issue": 11,
+      "title": "DATA/GEO: verifiedスポットのチェックイン座標と公開地点を確認する",
+      "status": "backlog",
+      "priority": "P1",
+      "depends_on": [
+        "issue-3",
+        "issue-6"
+      ],
+      "labels": [
+        "data",
+        "geolocation",
+        "safety"
+      ],
+      "url": "https://github.com/bonsai/minyo-go/issues/11"
+    },
+    {
+      "id": "issue-12",
+      "issue": 12,
+      "title": "SECURITY: MVPユーザー識別子を認証付きユーザー管理へ移行する",
+      "status": "backlog",
+      "priority": "P1",
+      "depends_on": [
+        "issue-2",
+        "issue-7",
+        "issue-8"
+      ],
+      "labels": [
+        "security",
+        "auth"
+      ],
+      "url": "https://github.com/bonsai/minyo-go/issues/12"
+    },
+    {
+      "id": "issue-13",
+      "issue": 13,
+      "title": "QA: 地図UIからスタンプ獲得までのE2E検証とCI実行結果を確認する",
+      "status": "backlog",
+      "priority": "P1",
+      "depends_on": [
+        "issue-8",
+        "issue-9",
+        "issue-10",
+        "issue-11"
+      ],
+      "labels": [
+        "qa",
+        "e2e",
+        "ci"
+      ],
+      "url": "https://github.com/bonsai/minyo-go/issues/13"
     }
   ],
   "milestones": [
