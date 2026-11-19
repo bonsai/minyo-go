@@ -31,3 +31,61 @@ func TestImportQuestionsRequiresThreePerSpotAndIsIdempotent(t *testing.T) {
 	if err := database.QueryRow("SELECT COUNT(*) FROM questions WHERE spot_id='spot-q'").Scan(&count); err != nil { t.Fatal(err) }
 	if count != 3 { t.Fatalf("question count=%d, want 3", count) }
 }
+
+
+func TestRepositoryQuizDatasetImportsForAllVerifiedSpots(t *testing.T) {
+	database, err := db.Open(filepath.Join(t.TempDir(), "repository-quizzes.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer database.Close()
+
+	spotsPath := filepath.Join("..", "..", "spots-verified.json")
+	quizzesPath := filepath.Join("..", "..", "quizzes.json")
+	spotCount, err := ImportSpots(database, spotsPath)
+	if err != nil {
+		t.Fatalf("import repository spots: %v", err)
+	}
+	if spotCount != 16 {
+		t.Fatalf("imported spots=%d, want 16", spotCount)
+	}
+	questionCount, err := ImportQuestions(database, quizzesPath)
+	if err != nil {
+		t.Fatalf("import repository quizzes: %v", err)
+	}
+	if questionCount != 48 {
+		t.Fatalf("imported questions=%d, want 48", questionCount)
+	}
+
+	var activeCount int
+	if err := database.QueryRow("SELECT COUNT(*) FROM questions WHERE active=1").Scan(&activeCount); err != nil {
+		t.Fatal(err)
+	}
+	if activeCount != 48 {
+		t.Fatalf("active questions=%d, want 48", activeCount)
+	}
+
+	rows, err := database.Query("SELECT s.id, COUNT(q.id) FROM spots s LEFT JOIN questions q ON q.spot_id=s.id AND q.active=1 GROUP BY s.id")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rows.Close()
+	checkedSpots := 0
+	for rows.Next() {
+		var spotID string
+		var count int
+		if err := rows.Scan(&spotID, &count); err != nil {
+			t.Fatal(err)
+		}
+		checkedSpots++
+		if count != 3 {
+			t.Errorf("spot %s has %d active questions, want 3", spotID, count)
+		}
+	}
+	if err := rows.Err(); err != nil {
+		t.Fatal(err)
+	}
+	if checkedSpots != 16 {
+		t.Fatalf("checked spots=%d, want 16", checkedSpots)
+	}
+}
