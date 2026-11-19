@@ -49,9 +49,10 @@ go mod tidy
 go run ./cmd/server -import-spots spots-verified.json
 go run ./cmd/server -import-quizzes quizzes.json
 go run ./cmd/server -addr :8080
+# ブラウザで http://localhost:8080/?api= を開く
 ```
 
-クイズデータは、各スポットにつき3問を用意したJSONを `-import-quizzes` で取り込む。
+Goサーバーは `/` と `/map.html` で既存の地図UIも配信する。`?api=` を付けると地図が同じサーバーのクイズ・スタンプAPIに接続する。クイズデータは、各スポットにつき3問を用意したJSONを `-import-quizzes` で取り込む。
 
 ```sh
 go run ./cmd/server -import-quizzes quizzes.json
