@@ -37,17 +37,17 @@ func TestPragmasApplyToEveryPhysicalConnection(t *testing.T) {
 	first, err := database.Conn(context.Background())
 	if err != nil { t.Fatal(err) }
 	defer first.Close()
-	second, err := database.Conn(t.Context())
+	second, err := database.Conn(context.Background())
 	if err != nil { t.Fatal(err) }
 	defer second.Close()
 
 	for index, conn := range []*sql.Conn{first, second} {
 		var foreignKeys, busyTimeout, synchronous int
 		var journalMode string
-		if err := conn.QueryRowContext(t.Context(), "PRAGMA foreign_keys").Scan(&foreignKeys); err != nil { t.Fatal(err) }
-		if err := conn.QueryRowContext(t.Context(), "PRAGMA busy_timeout").Scan(&busyTimeout); err != nil { t.Fatal(err) }
-		if err := conn.QueryRowContext(t.Context(), "PRAGMA synchronous").Scan(&synchronous); err != nil { t.Fatal(err) }
-		if err := conn.QueryRowContext(t.Context(), "PRAGMA journal_mode").Scan(&journalMode); err != nil { t.Fatal(err) }
+		if err := conn.QueryRowContext(context.Background(), "PRAGMA foreign_keys").Scan(&foreignKeys); err != nil { t.Fatal(err) }
+		if err := conn.QueryRowContext(context.Background(), "PRAGMA busy_timeout").Scan(&busyTimeout); err != nil { t.Fatal(err) }
+		if err := conn.QueryRowContext(context.Background(), "PRAGMA synchronous").Scan(&synchronous); err != nil { t.Fatal(err) }
+		if err := conn.QueryRowContext(context.Background(), "PRAGMA journal_mode").Scan(&journalMode); err != nil { t.Fatal(err) }
 		if foreignKeys != 1 || busyTimeout != 5000 || synchronous != 1 || journalMode != "wal" {
 			t.Fatalf("connection %d pragmas: foreign_keys=%d busy_timeout=%d synchronous=%d journal_mode=%s", index, foreignKeys, busyTimeout, synchronous, journalMode)
 		}
