@@ -12,13 +12,15 @@
     "seed:local": "node scripts/seed-d1.mjs",
     "seed:remote": "node scripts/seed-d1.mjs --remote",
     "build": "wrangler deploy --dry-run",
-    "db:create": "wrangler d1 create minyo-go"
+    "db:create": "wrangler d1 create minyo-go",
+    "test:e2e": "playwright test -c e2e/playwright.config.mjs"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20261118.1",
     "typescript": "^5.7.2",
     "vitest": "^2.1.8",
     "wrangler": "^4.45.0",
-    "@cloudflare/vitest-pool-workers": "^0.8.19"
+    "@cloudflare/vitest-pool-workers": "^0.8.19",
+    "@playwright/test": "1.56.1"
   }
 }
