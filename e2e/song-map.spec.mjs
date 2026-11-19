@@ -53,7 +53,8 @@ test("song map opens three questions and round-trips an answer attempt to the AP
   await expect(page.locator("#quizDialog")).toBeVisible();
   await expect(page.locator("#quizQuestions .quiz-question")).toHaveCount(3);
 
-  await page.locator("#testToggle").check();
+  await page.locator("label.toggle-wrap").click();
+  await expect(page.locator("#testBadge")).toBeVisible();
   for (const question of await page.locator("#quizQuestions .quiz-question").all()) {
     await question.locator('input[type="radio"]').first().check();
   }
