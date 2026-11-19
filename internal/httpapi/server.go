@@ -29,6 +29,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /map.html", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "map.html")
 	})
+	mux.Handle("GET /wasm/", http.StripPrefix("/wasm/", http.FileServer(http.Dir("wasm"))))
 	mux.HandleFunc("GET /healthz", s.health)
 	mux.HandleFunc("GET /api/spots", s.listSpots)
 	mux.HandleFunc("GET /api/spots/{id}/quiz", s.getQuiz)
@@ -40,7 +41,9 @@ func (s *Server) Handler() http.Handler {
 
 func withJSONHeaders(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		if r.URL.Path == "/healthz" || strings.HasPrefix(r.URL.Path, "/api/") {
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		}
 		next.ServeHTTP(w, r)
 	})
 }
