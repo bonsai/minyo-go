@@ -37,3 +37,61 @@
 | 演歌 | 2 | 王将（通天閣）、月の法善寺横町（法善寺） |
 
 根拠の強さは `evidence_level` で区別している（official_documented＝自治体・公式／news_documented＝報道／secondary_documented＝歌碑データベース等の二次情報）。二次情報のものは現地確認で格上げする。
+
+## Go + SQLite API（MVP実装）
+
+Go 1.23 と pure-Go SQLite driver `modernc.org/sqlite` を使用する。DBはこのリポジトリのアプリ内部で完結し、MINYO LAND共通DBには接続しない。
+
+### 起動
+
+```sh
+go mod tidy
+go run ./cmd/server -import-spots spots-verified.json
+go run ./cmd/server -addr :8080
+```
+
+クイズデータは、各スポットにつき3問を用意したJSONを `-import-quizzes` で取り込む。
+
+```sh
+go run ./cmd/server -import-quizzes quizzes.json
+```
+
+JSON形式：
+
+```json
+{
+  "questions": [
+    {
+      "key": "osaka-verified-001-q1",
+      "spot_id": "osaka-verified-001",
+      "prompt": "問題文",
+      "choices": ["選択肢A", "選択肢B", "選択肢C"],
+      "answer_index": 0,
+      "sort_order": 1
+    }
+  ]
+}
+```
+
+同じ `spot_id` には必ず3問を登録する。正解番号はDB内に保存し、クイズ取得APIのレスポンスには含めない。過去の会話では48問を仮コンテンツとして作成したとの報告があったが、原稿データ本文は現リポジトリで確認できていないため、未取り込みとして扱う。
+
+### API
+
+| Method | Path | 説明 |
+|---|---|---|
+| GET | `/healthz` | DBヘルスチェック |
+| GET | `/api/spots` | スポット一覧 |
+| GET | `/api/spots/{id}/quiz` | 3問のクイズ（正解は非公開） |
+| POST | `/api/attempts` | 3問の回答判定・スタンプ付与 |
+| GET | `/api/users/{id}/stamps` | ユーザーの取得済みスタンプ |
+
+通常モードではサーバーがスポット座標との距離を計算し、30km以内の場合だけ回答を受け付ける。座標が未確認（NULL）のスポットは通常モードで取得できない。テストモードはサーバー環境変数 `MINYO_GO_ALLOW_TEST_MODE=true` で明示的に許可した場合だけ、リクエストの `test_mode: true` を受け付ける。
+
+### 開発・テスト
+
+```sh
+go test ./...
+go vet ./...
+```
+
+現段階の `user_id` はMVP用の識別子であり、認証機構ではない。本番公開前に認証・ユーザー本人性の検証を追加する。SQLiteはWAL + busy_timeout + synchronous=NORMALで運用し、初期段階ではPRAGMAの接続単位差異を避けるためDB接続数を1に制限している。
